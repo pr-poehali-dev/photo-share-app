@@ -4,159 +4,438 @@
 
 @layer base {
   :root {
-    --background: 220 20% 7%;
-    --foreground: 40 20% 92%;
+    /* Светлый фон с бумажной текстурой */
+    --background: 45 15% 94%;
+    --foreground: 0 0% 8%;
 
-    --card: 220 18% 10%;
-    --card-foreground: 40 20% 92%;
+    --card: 45 12% 90%;
+    --card-foreground: 0 0% 8%;
 
-    --popover: 220 18% 10%;
-    --popover-foreground: 40 20% 92%;
+    --popover: 45 12% 90%;
+    --popover-foreground: 0 0% 8%;
 
-    --primary: 35 80% 65%;
-    --primary-foreground: 220 20% 7%;
+    /* Электрик-синий акцент */
+    --primary: 220 100% 45%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 15% 16%;
-    --secondary-foreground: 40 20% 85%;
+    --secondary: 45 10% 85%;
+    --secondary-foreground: 0 0% 15%;
 
-    --muted: 220 15% 14%;
-    --muted-foreground: 220 10% 50%;
+    --muted: 45 10% 88%;
+    --muted-foreground: 0 0% 40%;
 
-    --accent: 280 60% 65%;
+    --accent: 220 100% 45%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 0 80% 45%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 15% 18%;
-    --input: 220 15% 16%;
-    --ring: 35 80% 65%;
+    --border: 0 0% 72%;
+    --input: 45 10% 85%;
+    --ring: 220 100% 45%;
 
-    --radius: 0.75rem;
+    /* Квадратные углы — ретро */
+    --radius: 0px;
 
-    /* Custom gradient vars */
-    --grad-primary: linear-gradient(
-      135deg,
-      #f5a623 0%,
-      #f76c6c 50%,
-      #a855f7 100%
-    );
-    --grad-card: linear-gradient(
-      160deg,
-      hsl(220 18% 12%) 0%,
-      hsl(220 18% 9%) 100%
-    );
-    --grad-overlay: linear-gradient(
-      to top,
-      rgba(10, 10, 20, 0.95) 0%,
-      rgba(10, 10, 20, 0.4) 50%,
-      transparent 100%
-    );
+    --electric: #0047ff;
+    --electric-dim: rgba(0, 71, 255, 0.15);
+    --noise-opacity: 0.035;
   }
 }
 
 @layer base {
   * {
     @apply border-border;
+    box-sizing: border-box;
   }
 
   body {
-    @apply bg-background text-foreground font-body;
-    background-image:
-      radial-gradient(
-        ellipse 80% 50% at 20% 0%,
-        rgba(168, 85, 247, 0.07) 0%,
-        transparent 60%
-      ),
-      radial-gradient(
-        ellipse 60% 40% at 80% 100%,
-        rgba(245, 166, 35, 0.06) 0%,
-        transparent 60%
-      );
-    background-attachment: fixed;
+    @apply bg-background text-foreground font-mono;
+    /* Бумажный шум */
+    background-color: hsl(45 15% 94%);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
   }
 
   h1,
   h2,
   h3 {
     @apply font-display;
+    letter-spacing: -0.01em;
+  }
+
+  /* Полоса сканлайна на всём сайте */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.018) 2px,
+      rgba(0, 0, 0, 0.018) 4px
+    );
   }
 }
 
 @layer utilities {
+  /* Электрик-синий акцентный текст */
   .grad-text {
-    background: var(--grad-primary);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--electric);
   }
 
+  /* Карточка — бумага с рамкой */
   .card-glass {
-    background: var(--grad-card);
-    backdrop-filter: blur(12px);
-    border: 1px solid hsl(var(--border));
+    background: hsl(45 12% 91%);
+    border: 1px solid hsl(0 0% 60%);
+    border-radius: 0;
   }
 
+  /* Навбар */
+  .nav-blur {
+    background: hsl(45 15% 94%);
+    border-bottom: 2px solid hsl(0 0% 20%);
+  }
+
+  /* Фото-карточка */
+  .photo-card {
+    transition:
+      transform 0.15s ease,
+      box-shadow 0.15s ease;
+    border: 1px solid hsl(0 0% 55%);
+  }
+
+  .photo-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 4px 4px 0px hsl(0 0% 20%);
+  }
+
+  /* Глитч эффект на тексте */
+  .glitch {
+    position: relative;
+    display: inline-block;
+  }
+
+  .glitch::before,
+  .glitch::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .glitch::before {
+    color: var(--electric);
+    clip-path: polygon(0 30%, 100% 30%, 100% 50%, 0 50%);
+    transform: translateX(-2px);
+    opacity: 0;
+    animation: glitch-1 4s infinite;
+  }
+
+  .glitch::after {
+    color: hsl(0 80% 45%);
+    clip-path: polygon(0 55%, 100% 55%, 100% 70%, 0 70%);
+    transform: translateX(2px);
+    opacity: 0;
+    animation: glitch-2 4s infinite 0.5s;
+  }
+
+  /* Скобки вокруг элементов */
+  .bracket-left::before {
+    content: "[ ";
+    color: var(--electric);
+    font-family: "Share Tech Mono", monospace;
+    opacity: 0.7;
+  }
+
+  .bracket-right::after {
+    content: " ]";
+    color: var(--electric);
+    font-family: "Share Tech Mono", monospace;
+    opacity: 0.7;
+  }
+
+  /* Пиксельная рамка */
+  .pixel-border {
+    border: 2px solid hsl(0 0% 15%);
+    box-shadow: 3px 3px 0 hsl(0 0% 15%);
+  }
+
+  .pixel-border-blue {
+    border: 2px solid var(--electric);
+    box-shadow: 3px 3px 0 var(--electric);
+  }
+
+  /* Ретро-кнопка */
+  .retro-btn {
+    border: 2px solid hsl(0 0% 15%);
+    background: hsl(45 15% 94%);
+    color: hsl(0 0% 8%);
+    font-family: "Share Tech Mono", monospace;
+    letter-spacing: 0.05em;
+    box-shadow: 3px 3px 0 hsl(0 0% 15%);
+    transition: all 0.08s;
+    border-radius: 0;
+  }
+
+  .retro-btn:hover {
+    background: hsl(0 0% 15%);
+    color: hsl(45 15% 94%);
+    box-shadow: 1px 1px 0 hsl(0 0% 15%);
+    transform: translate(2px, 2px);
+  }
+
+  .retro-btn:active {
+    box-shadow: none;
+    transform: translate(3px, 3px);
+  }
+
+  .retro-btn-blue {
+    border: 2px solid var(--electric);
+    background: transparent;
+    color: var(--electric);
+    font-family: "Share Tech Mono", monospace;
+    letter-spacing: 0.05em;
+    box-shadow: 3px 3px 0 var(--electric);
+    transition: all 0.08s;
+    border-radius: 0;
+  }
+
+  .retro-btn-blue:hover {
+    background: var(--electric);
+    color: white;
+    box-shadow: 1px 1px 0 var(--electric);
+    transform: translate(2px, 2px);
+  }
+
+  .retro-btn-blue:active {
+    box-shadow: none;
+    transform: translate(3px, 3px);
+  }
+
+  /* Заполненная синяя кнопка */
+  .retro-btn-filled {
+    border: 2px solid hsl(0 0% 15%);
+    background: hsl(0 0% 10%);
+    color: hsl(45 15% 94%);
+    font-family: "Share Tech Mono", monospace;
+    letter-spacing: 0.05em;
+    box-shadow: 3px 3px 0 hsl(0 0% 35%);
+    transition: all 0.08s;
+    border-radius: 0;
+  }
+
+  .retro-btn-filled:hover {
+    background: var(--electric);
+    border-color: var(--electric);
+    box-shadow: 1px 1px 0 hsl(220 100% 25%);
+    transform: translate(2px, 2px);
+  }
+
+  .retro-btn-filled:active {
+    box-shadow: none;
+    transform: translate(3px, 3px);
+  }
+
+  /* Текстовый инпут */
+  .retro-input {
+    background: white;
+    border: 2px solid hsl(0 0% 30%);
+    border-radius: 0;
+    font-family: "Share Tech Mono", monospace;
+    color: hsl(0 0% 8%);
+    outline: none;
+  }
+
+  .retro-input:focus {
+    border-color: var(--electric);
+    box-shadow: 0 0 0 2px rgba(0, 71, 255, 0.15);
+  }
+
+  /* Горизонтальный разделитель — ретро */
+  .retro-divider {
+    border: none;
+    border-top: 1px solid hsl(0 0% 65%);
+    position: relative;
+  }
+
+  /* Оверлей на фото */
   .img-overlay::after {
     content: "";
     position: absolute;
     inset: 0;
-    background: var(--grad-overlay);
+    background: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.85) 0%,
+      rgba(0, 0, 0, 0.2) 50%,
+      transparent 100%
+    );
     opacity: 0;
-    transition: opacity 0.4s ease;
+    transition: opacity 0.3s;
   }
 
   .img-overlay:hover::after {
     opacity: 1;
   }
 
-  .like-btn-active {
-    animation: pulse-soft 0.3s ease-in-out;
+  /* Пиксельный шум поверх фото */
+  .photo-noise::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E");
+    mix-blend-mode: multiply;
+    opacity: 0.5;
   }
 
-  .photo-card {
-    transition:
-      transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
-      box-shadow 0.4s ease;
+  /* Курсор-блинк */
+  .cursor-blink::after {
+    content: "█";
+    animation: blink 1s step-end infinite;
+    color: var(--electric);
+    font-size: 0.8em;
   }
 
-  .photo-card:hover {
-    transform: translateY(-6px) scale(1.01);
-    box-shadow:
-      0 24px 60px rgba(0, 0, 0, 0.5),
-      0 0 40px rgba(168, 85, 247, 0.12);
+  /* Stagger анимации */
+  .stagger-1 {
+    animation-delay: 0.05s;
+  }
+  .stagger-2 {
+    animation-delay: 0.1s;
+  }
+  .stagger-3 {
+    animation-delay: 0.15s;
+  }
+  .stagger-4 {
+    animation-delay: 0.2s;
+  }
+  .stagger-5 {
+    animation-delay: 0.25s;
+  }
+  .stagger-6 {
+    animation-delay: 0.3s;
   }
 
-  .nav-blur {
-    backdrop-filter: blur(20px);
-    background: rgba(10, 12, 20, 0.8);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  .opacity-0-init {
+    opacity: 0;
   }
 
   .scrollbar-hidden::-webkit-scrollbar {
     display: none;
   }
 
-  .stagger-1 {
-    animation-delay: 0.1s;
+  /* Тег / метка */
+  .retro-tag {
+    font-family: "Share Tech Mono", monospace;
+    font-size: 0.7rem;
+    border: 1px solid hsl(0 0% 55%);
+    padding: 1px 6px;
+    letter-spacing: 0.08em;
+    color: hsl(0 0% 40%);
+    background: transparent;
   }
-  .stagger-2 {
-    animation-delay: 0.2s;
-  }
-  .stagger-3 {
-    animation-delay: 0.3s;
-  }
-  .stagger-4 {
-    animation-delay: 0.4s;
-  }
-  .stagger-5 {
-    animation-delay: 0.5s;
-  }
-  .stagger-6 {
-    animation-delay: 0.6s;
-  }
+}
 
-  .opacity-0-init {
+/* Keyframes */
+@keyframes glitch-1 {
+  0%,
+  90%,
+  100% {
     opacity: 0;
+    transform: translateX(-2px);
+  }
+  92%,
+  96% {
+    opacity: 0.8;
+    transform: translateX(-4px);
+  }
+  94% {
+    opacity: 0.4;
+    transform: translateX(2px);
+  }
+}
+
+@keyframes glitch-2 {
+  0%,
+  88%,
+  100% {
+    opacity: 0;
+    transform: translateX(2px);
+  }
+  90%,
+  96% {
+    opacity: 0.6;
+    transform: translateX(4px);
+  }
+  93% {
+    opacity: 0.3;
+    transform: translateX(-2px);
+  }
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+}
+
+@keyframes scanline {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100vh);
   }
 }

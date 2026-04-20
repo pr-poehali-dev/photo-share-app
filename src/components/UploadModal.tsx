@@ -13,18 +13,14 @@ const MAX_B64_BYTES = 3 * 1024 * 1024;
 
 async function fileToJpegB64(file: File): Promise<{ b64: string; previewUrl: string }> {
   let blob: Blob = file;
-
   const isHeic = file.type === "image/heic" || file.type === "image/heif"
     || file.name.toLowerCase().endsWith(".heic")
     || file.name.toLowerCase().endsWith(".heif");
-
   if (isHeic) {
     const converted = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.85 });
     blob = Array.isArray(converted) ? converted[0] : converted;
   }
-
   const previewUrl = URL.createObjectURL(blob);
-
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
@@ -34,11 +30,8 @@ async function fileToJpegB64(file: File): Promise<{ b64: string; previewUrl: str
         else { width = Math.round(width * MAX_SIDE / height); height = MAX_SIDE; }
       }
       const canvas = document.createElement("canvas");
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext("2d")!;
-      ctx.drawImage(img, 0, 0, width, height);
-
+      canvas.width = width; canvas.height = height;
+      canvas.getContext("2d")!.drawImage(img, 0, 0, width, height);
       let quality = 0.85;
       let dataUrl = canvas.toDataURL("image/jpeg", quality);
       while (dataUrl.length > MAX_B64_BYTES * 1.37 && quality > 0.3) {
@@ -64,81 +57,72 @@ export default function UploadModal({ onClose, onUploaded }: UploadModalProps) {
 
   const processFile = useCallback(async (file: File) => {
     if (!file.type.startsWith("image/") && !file.name.match(/\.(heic|heif)$/i)) {
-      setError("Выберите файл изображения");
+      setError("[ ОШИБКА ] Выберите файл изображения");
       return;
     }
     if (file.size > 100 * 1024 * 1024) {
-      setError("Файл не должен превышать 100 МБ");
+      setError("[ ОШИБКА ] Файл не должен превышать 100 МБ");
       return;
     }
-    setError("");
-    setCompressing(true);
-    setPreview(null);
+    setError(""); setCompressing(true); setPreview(null);
     try {
       const { b64, previewUrl } = await fileToJpegB64(file);
-      setImageB64(b64);
-      setPreview(previewUrl);
-    } catch {
-      setError("Не удалось обработать изображение");
-    } finally {
-      setCompressing(false);
-    }
+      setImageB64(b64); setPreview(previewUrl);
+    } catch { setError("[ ОШИБКА ] Не удалось обработать изображение"); }
+    finally { setCompressing(false); }
   }, []);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(false);
+    e.preventDefault(); setDragOver(false);
     const file = e.dataTransfer.files[0];
     if (file) processFile(file);
   }, [processFile]);
 
   const handleSubmit = async () => {
-    if (!title.trim()) { setError("Введите название фото"); return; }
-    if (!imageB64) { setError("Выберите фотографию"); return; }
-    setLoading(true);
-    setError("");
+    if (!title.trim()) { setError("[ ОШИБКА ] Введите название"); return; }
+    if (!imageB64) { setError("[ ОШИБКА ] Выберите фотографию"); return; }
+    setLoading(true); setError("");
     try {
       await uploadPhoto({ title: title.trim(), image_b64: imageB64, content_type: "image/jpeg" });
-      onUploaded();
-      onClose();
+      onUploaded(); onClose();
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Ошибка загрузки");
-    } finally {
-      setLoading(false);
-    }
+      setError(`[ ОШИБКА ] ${e instanceof Error ? e.message : "Ошибка загрузки"}`);
+    } finally { setLoading(false); }
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/80 backdrop-blur-xl" />
+      <div className="absolute inset-0 bg-black/80" />
+
       <div
-        className="relative z-10 w-full sm:max-w-lg sm:mx-4 rounded-t-3xl sm:rounded-2xl overflow-hidden shadow-2xl animate-scale-in"
-        style={{ background: "hsl(220, 18%, 9%)", border: "1px solid hsl(220, 15%, 18%)" }}
+        className="relative z-10 w-full sm:max-w-lg sm:mx-4 border-2 border-foreground animate-scale-in"
+        style={{ background: "hsl(45 15% 94%)" }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Drag handle mobile */}
-        <div className="flex justify-center pt-3 pb-1 sm:hidden">
-          <div className="w-10 h-1 rounded-full bg-white/20" />
+        {/* Handle mobile */}
+        <div className="flex justify-center pt-2.5 sm:hidden">
+          <div className="w-10 h-1 bg-foreground/30" />
         </div>
 
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 via-pink-500 to-purple-600 flex items-center justify-center">
-              <Icon name="Upload" size={13} className="text-white" />
-            </div>
-            <h2 className="font-display text-xl text-foreground">Добавить фото</h2>
+        {/* Заголовок */}
+        <div className="flex items-center justify-between px-5 py-4 border-b-2 border-foreground/20">
+          <div>
+            <p className="font-mono text-xs text-muted-foreground uppercase tracking-widest mb-0.5">// UPLOAD</p>
+            <h2 className="font-display text-3xl text-foreground uppercase leading-none">ДОБАВИТЬ ФОТО</h2>
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-all">
-            <Icon name="X" size={14} />
+          <button
+            onClick={onClose}
+            className="w-8 h-8 border-2 border-foreground flex items-center justify-center font-mono hover:bg-foreground hover:text-background transition-colors"
+          >
+            <Icon name="X" size={13} />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
+          {/* Дроп-зона */}
           <div
-            className={`relative rounded-xl border-2 border-dashed transition-all duration-300 cursor-pointer overflow-hidden ${
-              dragOver ? "border-purple-500/70 bg-purple-500/8"
-              : preview ? "border-border"
-              : "border-border hover:border-purple-500/40"
+            className={`relative cursor-pointer overflow-hidden border-2 border-dashed transition-all duration-150 ${
+              dragOver ? "border-electric bg-electric/5" : "border-foreground/35 hover:border-foreground/60"
             }`}
             style={{ minHeight: "160px" }}
             onClick={() => inputRef.current?.click()}
@@ -148,28 +132,30 @@ export default function UploadModal({ onClose, onUploaded }: UploadModalProps) {
           >
             {compressing ? (
               <div className="flex flex-col items-center justify-center h-40 gap-3">
-                <Icon name="Loader2" size={28} className="animate-spin text-purple-400" />
-                <p className="text-muted-foreground text-sm font-body">Обрабатываю фото...</p>
+                <Icon name="Loader2" size={22} className="animate-spin text-muted-foreground" />
+                <p className="font-mono text-xs text-muted-foreground uppercase tracking-wider">ОБРАБОТКА...</p>
               </div>
             ) : preview ? (
               <div className="relative">
-                <img src={preview} alt="preview" className="w-full h-40 object-cover" />
+                <img src={preview} alt="preview" className="w-full h-40 object-cover grayscale-[15%]" />
                 <div className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 active:opacity-100 transition-opacity flex items-center justify-center">
-                  <p className="text-white text-sm font-body">Нажмите чтобы заменить</p>
+                  <p className="font-mono text-white text-xs uppercase tracking-wider">[ ЗАМЕНИТЬ ]</p>
                 </div>
+                <div className="absolute inset-0 pointer-events-none photo-noise" />
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center h-40 gap-3 text-muted-foreground">
-                <div className="w-12 h-12 rounded-xl bg-white/4 border border-border flex items-center justify-center">
-                  <Icon name="ImagePlus" size={22} />
+              <div className="flex flex-col items-center justify-center h-40 gap-3">
+                <div className="w-10 h-10 border-2 border-foreground/40 flex items-center justify-center">
+                  <Icon name="ImagePlus" size={18} className="text-muted-foreground" />
                 </div>
                 <div className="text-center px-4">
-                  <p className="text-sm font-body text-foreground">Нажмите чтобы выбрать</p>
-                  <p className="text-xs mt-1">JPG, PNG, HEIC, WebP и другие · до 100 МБ</p>
+                  <p className="font-mono text-xs text-foreground uppercase tracking-wider">[ НАЖМИТЕ ИЛИ ПЕРЕТАЩИТЕ ]</p>
+                  <p className="font-mono text-xs text-muted-foreground mt-1">JPG · PNG · HEIC · WEBP · до 100 МБ</p>
                 </div>
               </div>
             )}
           </div>
+
           <input
             ref={inputRef}
             type="file"
@@ -178,31 +164,40 @@ export default function UploadModal({ onClose, onUploaded }: UploadModalProps) {
             onChange={(e) => { if (e.target.files?.[0]) processFile(e.target.files[0]); }}
           />
 
+          {/* Поле названия */}
           <div>
-            <label className="text-xs text-muted-foreground font-body mb-1.5 block">Название *</label>
+            <label className="font-mono text-xs text-muted-foreground uppercase tracking-wider mb-1.5 block">
+              &gt; НАЗВАНИЕ *
+            </label>
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Название вашей фотографии"
-              className="w-full px-4 py-3 rounded-xl bg-secondary border border-border text-foreground text-sm font-body placeholder:text-muted-foreground/50 focus:outline-none focus:border-purple-500/50 transition-colors"
+              placeholder="ВВЕДИТЕ НАЗВАНИЕ..."
+              className="retro-input w-full px-3 py-2.5 text-sm uppercase tracking-wide"
             />
           </div>
 
+          {/* Ошибка */}
           {error && (
-            <p className="text-rose-400 text-sm font-body flex items-center gap-2">
-              <Icon name="AlertCircle" size={14} />
+            <p className="font-mono text-xs text-destructive flex items-center gap-2">
+              <Icon name="AlertCircle" size={12} />
               {error}
             </p>
           )}
 
+          {/* Кнопка */}
           <button
             onClick={handleSubmit}
             disabled={loading || compressing}
-            className="w-full py-3.5 rounded-xl font-body font-medium text-sm text-white bg-gradient-to-r from-amber-400 via-pink-500 to-purple-600 hover:opacity-90 active:scale-[0.98] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="retro-btn-filled w-full py-3 text-sm uppercase tracking-widest flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? <><Icon name="Loader2" size={16} className="animate-spin" />Загружаю...</>
-            : compressing ? <><Icon name="Loader2" size={16} className="animate-spin" />Обрабатываю...</>
-            : <><Icon name="Upload" size={16} />Опубликовать фото</>}
+            {loading ? (
+              <><Icon name="Loader2" size={14} className="animate-spin" /> ЗАГРУЗКА...</>
+            ) : compressing ? (
+              <><Icon name="Loader2" size={14} className="animate-spin" /> ОБРАБОТКА...</>
+            ) : (
+              <><Icon name="Upload" size={14} /> [ ОПУБЛИКОВАТЬ ]</>
+            )}
           </button>
         </div>
       </div>

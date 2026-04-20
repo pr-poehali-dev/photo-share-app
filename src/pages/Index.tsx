@@ -36,7 +36,7 @@ export default function Index() {
     try {
       const data = await fetchPhotos();
       setApiPhotos(data.map(apiToPhoto));
-    } catch { /* fallback to static */ } finally { setLoadingApi(false); }
+    } catch { /* fallback */ } finally { setLoadingApi(false); }
   }, []);
 
   useEffect(() => { loadPhotos(); }, [loadPhotos]);
@@ -88,125 +88,152 @@ export default function Index() {
   const totalViews = allPhotos.reduce((acc, p) => acc + p.views, 0);
 
   return (
-    <div className="min-h-screen bg-background font-body">
+    <div className="min-h-screen bg-background font-body text-foreground">
 
       {/* NAV */}
       <nav className="sticky top-0 z-40 nav-blur">
-        <div className="max-w-6xl mx-auto px-3 sm:px-4 h-14 sm:h-16 flex items-center justify-between gap-2">
-          {/* Logo */}
+        <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
+
+          {/* Логотип */}
           <div className="flex items-center gap-2 flex-shrink-0">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 via-pink-500 to-purple-600 flex items-center justify-center">
-              <Icon name="Camera" size={14} className="text-white" />
-            </div>
-            <span className="font-display text-lg sm:text-xl text-foreground tracking-wide">НаТворче</span>
+            <span className="font-display text-3xl text-foreground leading-none">НаТворче</span>
+            <span className="retro-tag hidden sm:inline">v2.0</span>
           </div>
 
-          {/* Tabs */}
-          <div className="flex items-center gap-0.5 bg-secondary/50 rounded-xl p-1 border border-border">
+          {/* Табы */}
+          <div className="flex items-center gap-0 border-2 border-foreground" style={{ borderRadius: 0 }}>
             <button
               onClick={() => setPage("feed")}
-              className={`px-3 sm:px-4 py-1.5 rounded-lg text-xs sm:text-sm font-body transition-all duration-300 ${page === "feed" ? "bg-gradient-to-r from-amber-400/90 via-pink-500/90 to-purple-600/90 text-white shadow-lg" : "text-muted-foreground"}`}
+              className={`px-3 sm:px-5 py-1.5 font-mono text-xs sm:text-sm uppercase tracking-widest transition-all duration-100 ${
+                page === "feed"
+                  ? "bg-foreground text-background"
+                  : "bg-transparent text-foreground hover:bg-foreground/10"
+              }`}
             >
-              Лента
+              [ ЛЕНТА ]
             </button>
+            <div className="w-px h-full bg-foreground" />
             <button
               onClick={() => setPage("gallery")}
-              className={`px-3 sm:px-4 py-1.5 rounded-lg text-xs sm:text-sm font-body transition-all duration-300 ${page === "gallery" ? "bg-gradient-to-r from-amber-400/90 via-pink-500/90 to-purple-600/90 text-white shadow-lg" : "text-muted-foreground"}`}
+              className={`px-3 sm:px-5 py-1.5 font-mono text-xs sm:text-sm uppercase tracking-widest transition-all duration-100 ${
+                page === "gallery"
+                  ? "bg-foreground text-background"
+                  : "bg-transparent text-foreground hover:bg-foreground/10"
+              }`}
             >
-              Галерея
+              [ ГАЛЕРЕЯ ]
             </button>
           </div>
 
-          {/* Right */}
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <div className="hidden md:flex items-center gap-3 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1"><Icon name="Heart" size={12} className="text-rose-400" />{totalLikes.toLocaleString()}</span>
-              <span className="flex items-center gap-1"><Icon name="Eye" size={12} className="text-accent" />{totalViews.toLocaleString()}</span>
+          {/* Правый блок */}
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <div className="hidden md:flex items-center gap-3 font-mono text-xs text-muted-foreground">
+              <span>♥ {totalLikes}</span>
+              <span>◎ {totalViews}</span>
             </div>
             <button
               onClick={() => setShowUpload(true)}
-              className="flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-body font-medium text-white bg-gradient-to-r from-amber-400 via-pink-500 to-purple-600 hover:opacity-90 active:scale-95 transition-all duration-200 shadow-lg"
+              className="retro-btn-filled px-3 sm:px-4 py-1.5 text-xs sm:text-sm uppercase tracking-wider flex items-center gap-1.5"
             >
-              <Icon name="Plus" size={14} />
-              <span className="hidden xs:inline sm:inline">Добавить</span>
+              <Icon name="Plus" size={13} />
+              <span className="hidden sm:inline">Добавить</span>
             </button>
           </div>
         </div>
       </nav>
 
-      {/* HERO — компактный на мобильном */}
-      <section className="relative pt-8 sm:pt-16 pb-6 sm:pb-10 px-4 overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-1/4 w-64 sm:w-96 h-64 sm:h-96 bg-purple-600/8 rounded-full blur-3xl" />
-          <div className="absolute top-10 right-1/4 w-56 sm:w-80 h-56 sm:h-80 bg-amber-400/6 rounded-full blur-3xl" />
+      {/* HERO */}
+      <section className="max-w-5xl mx-auto px-4 pt-10 sm:pt-16 pb-8 sm:pb-12">
+        {/* Метка */}
+        <div className="font-mono text-xs text-muted-foreground tracking-[0.3em] uppercase mb-3">
+          &gt;&gt; {page === "feed" ? "STREAM_MODE" : "GALLERY_MODE"} ████████████ OK
         </div>
-        <div className="max-w-6xl mx-auto text-center relative z-10">
-          <p className="text-xs uppercase tracking-[0.2em] sm:tracking-[0.3em] text-muted-foreground mb-2 sm:mb-4 font-body">
-            {page === "feed" ? "свежие работы" : "вся коллекция"}
-          </p>
-          <h1 className="font-display text-4xl sm:text-5xl md:text-7xl mb-3 sm:mb-4 leading-none">
-            {page === "feed"
-              ? <>Лента <span className="grad-text italic">моментов</span></>
-              : <>Галерея <span className="grad-text italic">работ</span></>}
-          </h1>
-          <p className="text-muted-foreground text-sm sm:text-base max-w-xs sm:max-w-md mx-auto">
-            {page === "feed" ? "Делись самыми яркими моментами" : "Все фотографии одним взглядом — нажмите для просмотра"}
-          </p>
+
+        {/* Заголовок */}
+        <h1
+          className="font-display leading-none mb-2 glitch"
+          data-text={page === "feed" ? "ЛЕНТА МОМЕНТОВ" : "ГАЛЕРЕЯ РАБОТ"}
+          style={{ fontSize: "clamp(3rem, 10vw, 7rem)", color: "hsl(0 0% 8%)" }}
+        >
+          {page === "feed" ? (
+            <>ЛЕНТА <span className="grad-text">МОМЕНТОВ</span></>
+          ) : (
+            <>ГАЛЕРЕЯ <span className="grad-text">РАБОТ</span></>
+          )}
+        </h1>
+
+        {/* Подзаголовок */}
+        <p className="font-mono text-sm sm:text-base text-muted-foreground cursor-blink">
+          {page === "feed" ? "Делись самыми яркими моментами" : "Все фотографии одним взглядом"}
+        </p>
+
+        {/* Горизонтальный разделитель */}
+        <div className="mt-6 sm:mt-8 border-t-2 border-foreground relative">
+          <span className="absolute -top-3 left-0 bg-background px-2 font-mono text-xs text-electric" style={{ color: "var(--electric)" }}>
+            [ {filtered.length} ФОТО ]
+          </span>
         </div>
       </section>
 
       {/* CONTENT */}
-      <main className="max-w-6xl mx-auto px-3 sm:px-4 pb-24 sm:pb-20">
+      <main className="max-w-5xl mx-auto px-4 pb-24 sm:pb-20">
         {loadingApi && apiPhotos.length === 0 && (
-          <div className="flex justify-center py-8">
-            <Icon name="Loader2" size={24} className="animate-spin text-muted-foreground" />
+          <div className="flex items-center gap-3 py-8 font-mono text-sm text-muted-foreground">
+            <Icon name="Loader2" size={16} className="animate-spin" />
+            ЗАГРУЗКА ДАННЫХ...
           </div>
         )}
 
         {page === "feed" ? (
-          /* Лента — на мобильном только фото + кнопки под ним */
-          <div className="space-y-4 sm:space-y-6">
+          <div className="space-y-0 divide-y-2 divide-foreground/20">
             {filtered.map((photo, i) => (
               <div
                 key={photo.id}
-                className={`card-glass rounded-2xl overflow-hidden flex flex-col sm:flex-row group cursor-pointer opacity-0-init animate-fade-in stagger-${Math.min(i + 1, 6)}`}
+                className={`flex flex-col sm:flex-row group cursor-pointer opacity-0-init animate-fade-in stagger-${Math.min(i + 1, 6)} py-5 sm:py-6 gap-4 sm:gap-6 hover:bg-black/3 transition-colors`}
                 onClick={() => handleOpen(photo)}
               >
                 {/* Фото */}
-                <div className="sm:w-[380px] md:w-[480px] relative overflow-hidden aspect-[16/10] sm:aspect-auto sm:h-56 md:h-64 flex-shrink-0">
+                <div className="sm:w-72 md:w-80 relative overflow-hidden flex-shrink-0 border-2 border-foreground/30 photo-noise" style={{ aspectRatio: "16/10" }}>
                   <img
                     src={photo.src}
                     alt={photo.title}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    className="w-full h-full object-cover grayscale-[15%] transition-all duration-500 group-hover:grayscale-0 group-hover:scale-105"
                   />
-                </div>
-                {/* Инфо */}
-                <div className="flex-1 p-4 sm:p-6 flex flex-col justify-between">
-                  <div>
-                    <h2 className="font-display text-xl sm:text-2xl text-foreground mb-1">{photo.title}</h2>
-                    <p className="text-muted-foreground text-xs sm:text-sm font-body">{photo.date}</p>
+                  {/* Номер */}
+                  <div className="absolute top-2 left-2 font-mono text-xs bg-foreground text-background px-2 py-0.5">
+                    #{String(i + 1).padStart(3, "0")}
                   </div>
-                  <div className="flex items-center gap-3 mt-3 sm:mt-4">
-                    {/* Лайк */}
+                </div>
+
+                {/* Инфо */}
+                <div className="flex-1 flex flex-col justify-between min-w-0">
+                  <div>
+                    <p className="font-mono text-xs text-muted-foreground mb-1 uppercase tracking-widest">{photo.date}</p>
+                    <h2 className="font-display text-3xl sm:text-4xl text-foreground leading-tight mb-2">{photo.title.toUpperCase()}</h2>
+                    <div className="flex items-center gap-2">
+                      <span className="retro-tag">ФОТО</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 mt-4">
                     <button
                       onClick={(e) => { e.stopPropagation(); handleLike(photo.id); }}
-                      className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-full border transition-all duration-300 text-sm font-body active:scale-95 ${photo.liked ? 'border-rose-500/40 text-rose-400 bg-rose-500/10' : 'border-border text-muted-foreground'}`}
+                      className={`retro-btn px-3 py-1.5 text-xs flex items-center gap-1.5 ${photo.liked ? "!bg-foreground !text-background" : ""}`}
                     >
-                      <Icon name="Heart" size={13} className={photo.liked ? 'fill-rose-400 text-rose-400' : ''} />
+                      <Icon name="Heart" size={11} className={photo.liked ? "fill-current" : ""} />
                       {photo.likes}
                     </button>
-                    {/* Просмотры */}
-                    <div className="flex items-center gap-1.5 text-muted-foreground text-sm">
-                      <Icon name="Eye" size={13} />
+                    <div className="font-mono text-xs text-muted-foreground flex items-center gap-1.5">
+                      <Icon name="Eye" size={11} />
                       {photo.views.toLocaleString()}
                     </div>
-                    {/* Удалить */}
                     {photo._apiId && (
                       <button
                         onClick={(e) => { e.stopPropagation(); handleDelete(photo.id); }}
-                        className="ml-auto p-2 rounded-lg text-muted-foreground hover:text-rose-400 active:text-rose-400 transition-colors"
+                        className="ml-auto font-mono text-xs text-muted-foreground hover:text-destructive flex items-center gap-1 transition-colors"
                       >
-                        <Icon name="Trash2" size={15} />
+                        <Icon name="Trash2" size={11} />
+                        <span className="hidden sm:inline">DEL</span>
                       </button>
                     )}
                   </div>
@@ -215,8 +242,7 @@ export default function Index() {
             ))}
           </div>
         ) : (
-          /* Галерея — 1 колонка на мобильном, 2 на планшете, 3 на десктопе */
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map((photo, i) => (
               <PhotoCard
                 key={photo.id}
@@ -231,36 +257,34 @@ export default function Index() {
         )}
 
         {filtered.length === 0 && !loadingApi && (
-          <div className="text-center py-20 text-muted-foreground">
-            <Icon name="ImageOff" size={40} className="mx-auto mb-3 opacity-30" />
-            <p className="font-body text-sm">Нет фотографий</p>
+          <div className="py-20 font-mono text-sm text-muted-foreground text-center">
+            <p>[ ДАННЫЕ ОТСУТСТВУЮТ ]</p>
           </div>
         )}
 
         {/* CTA */}
-        <div className="mt-10 sm:mt-12 text-center">
+        <div className="mt-12 sm:mt-16 border-2 border-dashed border-foreground/30 p-6 sm:p-8 text-center">
+          <p className="font-mono text-xs text-muted-foreground uppercase tracking-widest mb-3">// ЗАГРУЗИТЬ НОВОЕ ФОТО</p>
           <button
             onClick={() => setShowUpload(true)}
-            className="inline-flex items-center gap-2.5 px-6 sm:px-8 py-3.5 sm:py-4 rounded-2xl font-body font-medium text-sm text-foreground bg-gradient-to-r from-amber-400/10 via-pink-500/10 to-purple-600/10 border border-purple-500/20 hover:border-purple-500/40 active:scale-[0.98] transition-all duration-300"
+            className="retro-btn-blue px-6 py-2.5 text-sm uppercase tracking-wider flex items-center gap-2 mx-auto"
           >
-            <Icon name="ImagePlus" size={16} />
-            Поделитесь своим фото
+            <Icon name="ImagePlus" size={14} />
+            [ ПОДЕЛИТЬСЯ ФОТО ]
           </button>
-          <p className="text-muted-foreground text-xs mt-2.5 font-body">Любой может добавить свою фотографию</p>
         </div>
       </main>
 
-      {/* Мобильный FAB — кнопка добавить (дублирует навбар для удобства) */}
+      {/* FAB mobile */}
       <div className="fixed bottom-5 right-4 sm:hidden z-30">
         <button
           onClick={() => setShowUpload(true)}
-          className="w-14 h-14 rounded-full text-white bg-gradient-to-br from-amber-400 via-pink-500 to-purple-600 shadow-xl flex items-center justify-center active:scale-90 transition-transform"
+          className="retro-btn-filled w-14 h-14 flex items-center justify-center text-xl font-display border-2 border-foreground active:scale-90 transition-transform"
         >
-          <Icon name="Plus" size={24} />
+          +
         </button>
       </div>
 
-      {/* MODALS */}
       <PhotoModal
         photo={selectedPhoto}
         onClose={() => setSelectedPhoto(null)}
