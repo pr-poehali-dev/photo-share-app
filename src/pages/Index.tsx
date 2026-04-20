@@ -118,7 +118,7 @@ export default function Index() {
         </h1>
 
         <p className="font-mono text-sm sm:text-base text-muted-foreground cursor-blink">
-          Делись самыми яркими моментами
+          Делись самыми яркими впечатлениями.
         </p>
 
         <div className="mt-6 sm:mt-8 border-t-2 border-foreground relative">
