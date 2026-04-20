@@ -1,0 +1,6 @@
+{
+  "like-photo": "https://functions.poehali.dev/6493e1fd-129d-4354-9c71-94151abe936e",
+  "get-photos": "https://functions.poehali.dev/0f5a76cc-ea2f-41b6-9008-fc6cb14cd336",
+  "upload-photo": "https://functions.poehali.dev/f8b67671-e9e1-418a-aa4d-8b4d28dbe611",
+  "view-photo": "https://functions.poehali.dev/dcfd0780-c791-490b-92f4-a5b82d9413df"
+}

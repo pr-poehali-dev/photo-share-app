@@ -1,53 +1,119 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import Icon from "@/components/ui/icon";
 import PhotoCard from "@/components/PhotoCard";
 import PhotoModal from "@/components/PhotoModal";
-import { PHOTOS, CATEGORIES, Photo } from "@/data/photos";
+import UploadModal from "@/components/UploadModal";
+import { PHOTOS as STATIC_PHOTOS, CATEGORIES, Photo } from "@/data/photos";
+import { fetchPhotos, toggleLike, incrementView, ApiPhoto } from "@/api/photos";
 
 type PageView = "feed" | "gallery";
 
+type PhotoWithApi = Photo & { _apiId?: number };
+
+function getSessionId(): string {
+  let sid = localStorage.getItem("photo_session_id");
+  if (!sid) {
+    sid = Math.random().toString(36).slice(2) + Date.now().toString(36);
+    localStorage.setItem("photo_session_id", sid);
+  }
+  return sid;
+}
+
+function apiToPhoto(p: ApiPhoto): PhotoWithApi {
+  const date = new Date(p.created_at);
+  const formatted = date.toLocaleDateString("ru-RU", { day: "numeric", month: "short", year: "numeric" });
+  return {
+    id: p.id + 10000,
+    title: p.title,
+    author: p.author,
+    category: p.category,
+    src: p.image_url,
+    likes: p.likes,
+    views: p.views,
+    date: formatted,
+    liked: false,
+    _apiId: p.id,
+  };
+}
+
 export default function Index() {
-  const [photos, setPhotos] = useState<Photo[]>(PHOTOS);
+  const [apiPhotos, setApiPhotos] = useState<PhotoWithApi[]>([]);
   const [page, setPage] = useState<PageView>("feed");
   const [activeCategory, setActiveCategory] = useState("Все");
-  const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
+  const [selectedPhoto, setSelectedPhoto] = useState<PhotoWithApi | null>(null);
+  const [showUpload, setShowUpload] = useState(false);
+  const [loadingApi, setLoadingApi] = useState(true);
+  const sessionId = getSessionId();
+
+  const loadPhotos = useCallback(async () => {
+    try {
+      const data = await fetchPhotos();
+      setApiPhotos(data.map(apiToPhoto));
+    } catch {
+      // если API недоступен — работаем со статикой
+    } finally {
+      setLoadingApi(false);
+    }
+  }, []);
+
+  useEffect(() => { loadPhotos(); }, [loadPhotos]);
+
+  const allPhotos: PhotoWithApi[] = useMemo(
+    () => [...apiPhotos, ...STATIC_PHOTOS.map((p) => ({ ...p }))],
+    [apiPhotos]
+  );
 
   const filtered = useMemo(() => {
-    if (activeCategory === "Все") return photos;
-    return photos.filter((p) => p.category === activeCategory);
-  }, [photos, activeCategory]);
+    if (activeCategory === "Все") return allPhotos;
+    return allPhotos.filter((p) => p.category === activeCategory);
+  }, [allPhotos, activeCategory]);
 
-  const handleLike = (id: number) => {
-    setPhotos((prev) =>
+  const handleLike = async (id: number) => {
+    const photo = allPhotos.find((p) => p.id === id);
+
+    const applyToggle = (prev: PhotoWithApi[]): PhotoWithApi[] =>
       prev.map((p) =>
         p.id === id
           ? { ...p, liked: !p.liked, likes: p.liked ? p.likes - 1 : p.likes + 1 }
           : p
-      )
-    );
-    if (selectedPhoto?.id === id) {
-      setSelectedPhoto((prev) =>
-        prev ? { ...prev, liked: !prev.liked, likes: prev.liked ? prev.likes - 1 : prev.likes + 1 } : null
       );
+
+    if (photo?._apiId) {
+      setApiPhotos((prev) => applyToggle(prev));
+      if (selectedPhoto?.id === id) {
+        setSelectedPhoto((prev) => prev ? { ...prev, liked: !prev.liked, likes: prev.liked ? prev.likes - 1 : prev.likes + 1 } : null);
+      }
+      try {
+        const res = await toggleLike(photo._apiId, sessionId);
+        setApiPhotos((prev) => prev.map((p) => p.id === id ? { ...p, liked: res.liked, likes: res.likes } : p));
+        if (selectedPhoto?.id === id) {
+          setSelectedPhoto((prev) => prev ? { ...prev, liked: res.liked, likes: res.likes } : null);
+        }
+      } catch { /* ignore */ }
+    } else {
+      // статика — только локально
+      setApiPhotos((prev) => applyToggle(prev));
+      if (selectedPhoto?.id === id) {
+        setSelectedPhoto((prev) => prev ? { ...prev, liked: !prev.liked, likes: prev.liked ? prev.likes - 1 : prev.likes + 1 } : null);
+      }
     }
   };
 
-  const handleOpen = (photo: Photo) => {
-    setSelectedPhoto(photos.find((p) => p.id === photo.id) ?? photo);
+  const handleOpen = async (photo: PhotoWithApi) => {
+    const found = allPhotos.find((p) => p.id === photo.id) ?? photo;
+    setSelectedPhoto(found);
+    if (found._apiId) {
+      try { await incrementView(found._apiId); } catch { /* ignore */ }
+      setApiPhotos((prev) => prev.map((p) => p.id === photo.id ? { ...p, views: p.views + 1 } : p));
+    }
   };
 
   const currentIndex = selectedPhoto ? filtered.findIndex((p) => p.id === selectedPhoto.id) : -1;
+  const handlePrev = () => { if (currentIndex > 0) setSelectedPhoto(filtered[currentIndex - 1]); };
+  const handleNext = () => { if (currentIndex < filtered.length - 1) setSelectedPhoto(filtered[currentIndex + 1]); };
 
-  const handlePrev = () => {
-    if (currentIndex > 0) setSelectedPhoto(filtered[currentIndex - 1]);
-  };
-
-  const handleNext = () => {
-    if (currentIndex < filtered.length - 1) setSelectedPhoto(filtered[currentIndex + 1]);
-  };
-
-  const totalLikes = photos.reduce((acc, p) => acc + p.likes, 0);
-  const totalViews = photos.reduce((acc, p) => acc + p.views, 0);
+  const totalLikes = allPhotos.reduce((acc, p) => acc + p.likes, 0);
+  const totalViews = allPhotos.reduce((acc, p) => acc + p.views, 0);
 
   return (
     <div className="min-h-screen bg-background font-body">
@@ -84,15 +150,24 @@ export default function Index() {
             </button>
           </div>
 
-          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-            <span className="hidden sm:flex items-center gap-1">
-              <Icon name="Heart" size={12} className="text-rose-400" />
-              {totalLikes.toLocaleString()}
-            </span>
-            <span className="hidden sm:flex items-center gap-1">
-              <Icon name="Eye" size={12} className="text-accent" />
-              {totalViews.toLocaleString()}
-            </span>
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-4 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <Icon name="Heart" size={12} className="text-rose-400" />
+                {totalLikes.toLocaleString()}
+              </span>
+              <span className="flex items-center gap-1">
+                <Icon name="Eye" size={12} className="text-accent" />
+                {totalViews.toLocaleString()}
+              </span>
+            </div>
+            <button
+              onClick={() => setShowUpload(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-body font-medium text-white bg-gradient-to-r from-amber-400 via-pink-500 to-purple-600 hover:opacity-90 transition-all duration-300 shadow-lg hover:shadow-purple-500/20"
+            >
+              <Icon name="Plus" size={15} />
+              <span className="hidden sm:inline">Добавить фото</span>
+            </button>
           </div>
         </div>
       </nav>
@@ -109,13 +184,9 @@ export default function Index() {
           </p>
           <h1 className="font-display text-5xl md:text-7xl mb-4 leading-none animate-slide-up">
             {page === "feed" ? (
-              <>
-                Лента <span className="grad-text italic">моментов</span>
-              </>
+              <>Лента <span className="grad-text italic">моментов</span></>
             ) : (
-              <>
-                Галерея <span className="grad-text italic">работ</span>
-              </>
+              <>Галерея <span className="grad-text italic">работ</span></>
             )}
           </h1>
           <p className="text-muted-foreground text-base max-w-md mx-auto animate-fade-in stagger-2">
@@ -145,8 +216,14 @@ export default function Index() {
         </div>
       </div>
 
-      {/* GRID */}
+      {/* CONTENT */}
       <main className="max-w-6xl mx-auto px-4 pb-20">
+        {loadingApi && apiPhotos.length === 0 && (
+          <div className="flex justify-center py-8">
+            <Icon name="Loader2" size={24} className="animate-spin text-muted-foreground" />
+          </div>
+        )}
+
         {page === "feed" ? (
           <div className="space-y-6">
             {filtered.map((photo, i) => (
@@ -181,24 +258,17 @@ export default function Index() {
                           : 'border-border text-muted-foreground hover:border-rose-500/40 hover:text-rose-400'
                       }`}
                     >
-                      <Icon
-                        name="Heart"
-                        size={14}
-                        className={photo.liked ? 'fill-rose-400 text-rose-400' : ''}
-                      />
+                      <Icon name="Heart" size={14} className={photo.liked ? 'fill-rose-400 text-rose-400' : ''} />
                       {photo.likes}
                     </button>
                     <div className="flex items-center gap-2 text-muted-foreground text-sm">
                       <Icon name="Eye" size={14} />
                       {photo.views.toLocaleString()}
                     </div>
-                    <button
-                      onClick={(e) => e.stopPropagation()}
-                      className="ml-auto flex items-center gap-2 text-muted-foreground text-sm hover:text-foreground transition-colors"
-                    >
+                    <div className="ml-auto flex items-center gap-2 text-muted-foreground text-sm">
                       <Icon name="Maximize2" size={14} />
                       <span className="hidden sm:inline">Открыть</span>
-                    </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -219,15 +289,27 @@ export default function Index() {
           </div>
         )}
 
-        {filtered.length === 0 && (
+        {filtered.length === 0 && !loadingApi && (
           <div className="text-center py-24 text-muted-foreground">
             <Icon name="ImageOff" size={48} className="mx-auto mb-4 opacity-30" />
             <p className="font-body">Нет фотографий в этой категории</p>
           </div>
         )}
+
+        {/* Upload CTA */}
+        <div className="mt-12 text-center">
+          <button
+            onClick={() => setShowUpload(true)}
+            className="inline-flex items-center gap-3 px-8 py-4 rounded-2xl font-body font-medium text-foreground bg-gradient-to-r from-amber-400/10 via-pink-500/10 to-purple-600/10 border border-purple-500/20 hover:border-purple-500/40 transition-all duration-300"
+          >
+            <Icon name="ImagePlus" size={18} />
+            Поделитесь своим фото
+          </button>
+          <p className="text-muted-foreground text-xs mt-3 font-body">Любой может добавить свою фотографию в галерею</p>
+        </div>
       </main>
 
-      {/* MODAL */}
+      {/* MODALS */}
       <PhotoModal
         photo={selectedPhoto}
         onClose={() => setSelectedPhoto(null)}
@@ -237,6 +319,13 @@ export default function Index() {
         hasPrev={currentIndex > 0}
         hasNext={currentIndex < filtered.length - 1}
       />
+
+      {showUpload && (
+        <UploadModal
+          onClose={() => setShowUpload(false)}
+          onUploaded={loadPhotos}
+        />
+      )}
     </div>
   );
 }

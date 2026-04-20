@@ -8,6 +8,7 @@ export interface Photo {
   author: string;
   date: string;
   liked: boolean;
+  _apiId?: number;
 }
 
 export const PHOTOS: Photo[] = [
