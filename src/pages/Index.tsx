@@ -174,15 +174,7 @@ export default function Index() {
                     <Icon name="Eye" size={11} />
                     {photo.views.toLocaleString()}
                   </div>
-                  {photo._apiId && (
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleDelete(photo.id); }}
-                      className="ml-auto font-mono text-xs text-muted-foreground hover:text-destructive flex items-center gap-1 transition-colors"
-                    >
-                      <Icon name="Trash2" size={11} />
-                      <span className="hidden sm:inline">DEL</span>
-                    </button>
-                  )}
+
                 </div>
               </div>
             </div>
