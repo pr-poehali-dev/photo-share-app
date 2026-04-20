@@ -1,0 +1,17 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Missing photo_id",
+      "method": "DELETE",
+      "path": "/",
+      "body": {},
+      "expectedStatus": 400
+    }
+  ]
+}

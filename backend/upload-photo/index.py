@@ -20,20 +20,17 @@ def handler(event: dict, context) -> dict:
 
     body = json.loads(event.get("body") or "{}")
     title = (body.get("title") or "").strip()
-    author = (body.get("author") or "Аноним").strip()
-    category = (body.get("category") or "Другое").strip()
     image_b64 = body.get("image_b64", "")
     content_type = body.get("content_type", "image/jpeg")
 
+    if content_type not in ("image/jpeg", "image/png"):
+        return {"statusCode": 400, "headers": CORS, "body": json.dumps({"error": "Принимаются только PNG и JPEG"})}
+
     if not title or not image_b64:
-        return {
-            "statusCode": 400,
-            "headers": CORS,
-            "body": json.dumps({"error": "title и image_b64 обязательны"}),
-        }
+        return {"statusCode": 400, "headers": CORS, "body": json.dumps({"error": "title и image_b64 обязательны"})}
 
     image_data = base64.b64decode(image_b64)
-    ext = "jpg" if "jpeg" in content_type else content_type.split("/")[-1]
+    ext = "jpg" if "jpeg" in content_type else "png"
     key = f"photos/{uuid.uuid4()}.{ext}"
 
     s3 = boto3.client(
@@ -49,7 +46,7 @@ def handler(event: dict, context) -> dict:
     cur = conn.cursor()
     cur.execute(
         f"INSERT INTO {SCHEMA}.photos (title, author, category, image_url) VALUES (%s, %s, %s, %s) RETURNING id, created_at",
-        (title, author, category, image_url),
+        (title, "Аноним", "Другое", image_url),
     )
     row = cur.fetchone()
     conn.commit()
@@ -62,8 +59,6 @@ def handler(event: dict, context) -> dict:
         "body": json.dumps({
             "id": row[0],
             "title": title,
-            "author": author,
-            "category": category,
             "image_url": image_url,
             "likes": 0,
             "views": 0,

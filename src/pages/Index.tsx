@@ -3,8 +3,8 @@ import Icon from "@/components/ui/icon";
 import PhotoCard from "@/components/PhotoCard";
 import PhotoModal from "@/components/PhotoModal";
 import UploadModal from "@/components/UploadModal";
-import { PHOTOS as STATIC_PHOTOS, CATEGORIES, Photo } from "@/data/photos";
-import { fetchPhotos, toggleLike, incrementView, ApiPhoto } from "@/api/photos";
+import { PHOTOS as STATIC_PHOTOS, Photo } from "@/data/photos";
+import { fetchPhotos, toggleLike, incrementView, deletePhoto, ApiPhoto } from "@/api/photos";
 
 type PageView = "feed" | "gallery";
 
@@ -39,7 +39,6 @@ function apiToPhoto(p: ApiPhoto): PhotoWithApi {
 export default function Index() {
   const [apiPhotos, setApiPhotos] = useState<PhotoWithApi[]>([]);
   const [page, setPage] = useState<PageView>("feed");
-  const [activeCategory, setActiveCategory] = useState("Все");
   const [selectedPhoto, setSelectedPhoto] = useState<PhotoWithApi | null>(null);
   const [showUpload, setShowUpload] = useState(false);
   const [loadingApi, setLoadingApi] = useState(true);
@@ -63,10 +62,7 @@ export default function Index() {
     [apiPhotos]
   );
 
-  const filtered = useMemo(() => {
-    if (activeCategory === "Все") return allPhotos;
-    return allPhotos.filter((p) => p.category === activeCategory);
-  }, [allPhotos, activeCategory]);
+  const filtered = allPhotos;
 
   const handleLike = async (id: number) => {
     const photo = allPhotos.find((p) => p.id === id);
@@ -106,6 +102,14 @@ export default function Index() {
       try { await incrementView(found._apiId); } catch { /* ignore */ }
       setApiPhotos((prev) => prev.map((p) => p.id === photo.id ? { ...p, views: p.views + 1 } : p));
     }
+  };
+
+  const handleDelete = async (id: number) => {
+    const photo = allPhotos.find((p) => p.id === id);
+    if (!photo?._apiId) return;
+    setApiPhotos((prev) => prev.filter((p) => p.id !== id));
+    setSelectedPhoto(null);
+    try { await deletePhoto(photo._apiId); } catch { loadPhotos(); }
   };
 
   const currentIndex = selectedPhoto ? filtered.findIndex((p) => p.id === selectedPhoto.id) : -1;
@@ -197,24 +201,7 @@ export default function Index() {
         </div>
       </section>
 
-      {/* FILTERS */}
-      <div className="max-w-6xl mx-auto px-4 pb-6">
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hidden">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-body transition-all duration-300 border ${
-                activeCategory === cat
-                  ? "bg-gradient-to-r from-amber-400/20 via-pink-500/20 to-purple-600/20 border-purple-500/40 text-foreground"
-                  : "border-border text-muted-foreground hover:border-border hover:text-foreground bg-transparent"
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-      </div>
+
 
       {/* CONTENT */}
       <main className="max-w-6xl mx-auto px-4 pb-20">
@@ -247,7 +234,7 @@ export default function Index() {
                 <div className="flex-1 p-6 flex flex-col justify-between">
                   <div>
                     <h2 className="font-display text-2xl text-foreground mb-2">{photo.title}</h2>
-                    <p className="text-muted-foreground text-sm font-body">{photo.author} · {photo.date}</p>
+                    <p className="text-muted-foreground text-sm font-body">{photo.date}</p>
                   </div>
                   <div className="flex items-center gap-4 mt-4">
                     <button
@@ -265,10 +252,15 @@ export default function Index() {
                       <Icon name="Eye" size={14} />
                       {photo.views.toLocaleString()}
                     </div>
-                    <div className="ml-auto flex items-center gap-2 text-muted-foreground text-sm">
-                      <Icon name="Maximize2" size={14} />
-                      <span className="hidden sm:inline">Открыть</span>
-                    </div>
+                    {photo._apiId && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); handleDelete(photo.id); }}
+                        className="ml-auto flex items-center gap-1.5 text-muted-foreground text-sm hover:text-rose-400 transition-colors"
+                      >
+                        <Icon name="Trash2" size={14} />
+                        <span className="hidden sm:inline">Удалить</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -283,6 +275,7 @@ export default function Index() {
                   index={i}
                   onClick={handleOpen}
                   onLike={handleLike}
+                  onDelete={photo._apiId ? handleDelete : undefined}
                 />
               </div>
             ))}
@@ -314,6 +307,7 @@ export default function Index() {
         photo={selectedPhoto}
         onClose={() => setSelectedPhoto(null)}
         onLike={handleLike}
+        onDelete={selectedPhoto?._apiId ? handleDelete : undefined}
         onPrev={handlePrev}
         onNext={handleNext}
         hasPrev={currentIndex > 0}

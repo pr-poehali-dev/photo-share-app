@@ -3,6 +3,7 @@ const URLS = {
   uploadPhoto: "https://functions.poehali.dev/f8b67671-e9e1-418a-aa4d-8b4d28dbe611",
   likePhoto: "https://functions.poehali.dev/6493e1fd-129d-4354-9c71-94151abe936e",
   viewPhoto: "https://functions.poehali.dev/dcfd0780-c791-490b-92f4-a5b82d9413df",
+  deletePhoto: "https://functions.poehali.dev/b9b8d291-cb7b-41e4-8dbe-65d874e56ddb",
 };
 
 export interface ApiPhoto {
@@ -24,8 +25,6 @@ export async function fetchPhotos(): Promise<ApiPhoto[]> {
 
 export async function uploadPhoto(payload: {
   title: string;
-  author: string;
-  category: string;
   image_b64: string;
   content_type: string;
 }): Promise<ApiPhoto> {
@@ -54,4 +53,13 @@ export async function incrementView(photoId: number): Promise<void> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ photo_id: photoId }),
   });
+}
+
+export async function deletePhoto(photoId: number): Promise<void> {
+  const res = await fetch(URLS.deletePhoto, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ photo_id: photoId }),
+  });
+  if (!res.ok) throw new Error("Ошибка удаления");
 }

@@ -1,6 +1,5 @@
 import { useState, useRef, useCallback } from "react";
 import Icon from "@/components/ui/icon";
-import { CATEGORIES } from "@/data/photos";
 import { uploadPhoto } from "@/api/photos";
 
 interface UploadModalProps {
@@ -8,12 +7,8 @@ interface UploadModalProps {
   onUploaded: () => void;
 }
 
-const PHOTO_CATEGORIES = CATEGORIES.filter((c) => c !== "Все");
-
 export default function UploadModal({ onClose, onUploaded }: UploadModalProps) {
   const [title, setTitle] = useState("");
-  const [author, setAuthor] = useState("");
-  const [category, setCategory] = useState(PHOTO_CATEGORIES[0]);
   const [preview, setPreview] = useState<string | null>(null);
   const [imageB64, setImageB64] = useState<string>("");
   const [contentType, setContentType] = useState("image/jpeg");
@@ -23,8 +18,8 @@ export default function UploadModal({ onClose, onUploaded }: UploadModalProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const processFile = useCallback((file: File) => {
-    if (!file.type.startsWith("image/")) {
-      setError("Выберите файл изображения");
+    if (file.type !== "image/jpeg" && file.type !== "image/png") {
+      setError("Принимаются только PNG и JPEG");
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
@@ -37,8 +32,7 @@ export default function UploadModal({ onClose, onUploaded }: UploadModalProps) {
     reader.onload = (e) => {
       const result = e.target?.result as string;
       setPreview(result);
-      const base64 = result.split(",")[1];
-      setImageB64(base64);
+      setImageB64(result.split(",")[1]);
     };
     reader.readAsDataURL(file);
   }, []);
@@ -58,8 +52,6 @@ export default function UploadModal({ onClose, onUploaded }: UploadModalProps) {
     try {
       await uploadPhoto({
         title: title.trim(),
-        author: author.trim() || "Аноним",
-        category,
         image_b64: imageB64,
         content_type: contentType,
       });
@@ -126,7 +118,7 @@ export default function UploadModal({ onClose, onUploaded }: UploadModalProps) {
                 </div>
                 <div className="text-center">
                   <p className="text-sm font-body text-foreground">Перетащите или нажмите</p>
-                  <p className="text-xs mt-1">JPG, PNG, WebP · до 10 МБ</p>
+                  <p className="text-xs mt-1">PNG или JPEG · до 10 МБ</p>
                 </div>
               </div>
             )}
@@ -134,7 +126,7 @@ export default function UploadModal({ onClose, onUploaded }: UploadModalProps) {
           <input
             ref={inputRef}
             type="file"
-            accept="image/*"
+            accept="image/png,image/jpeg"
             className="hidden"
             onChange={(e) => { if (e.target.files?.[0]) processFile(e.target.files[0]); }}
           />
@@ -148,31 +140,6 @@ export default function UploadModal({ onClose, onUploaded }: UploadModalProps) {
               placeholder="Название вашей фотографии"
               className="w-full px-4 py-2.5 rounded-xl bg-secondary border border-border text-foreground text-sm font-body placeholder:text-muted-foreground/50 focus:outline-none focus:border-purple-500/50 transition-colors"
             />
-          </div>
-
-          {/* Author + Category row */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs text-muted-foreground font-body mb-1.5 block">Автор</label>
-              <input
-                value={author}
-                onChange={(e) => setAuthor(e.target.value)}
-                placeholder="Ваше имя"
-                className="w-full px-4 py-2.5 rounded-xl bg-secondary border border-border text-foreground text-sm font-body placeholder:text-muted-foreground/50 focus:outline-none focus:border-purple-500/50 transition-colors"
-              />
-            </div>
-            <div>
-              <label className="text-xs text-muted-foreground font-body mb-1.5 block">Категория</label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-secondary border border-border text-foreground text-sm font-body focus:outline-none focus:border-purple-500/50 transition-colors"
-              >
-                {PHOTO_CATEGORIES.map((c) => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
-            </div>
           </div>
 
           {error && (
