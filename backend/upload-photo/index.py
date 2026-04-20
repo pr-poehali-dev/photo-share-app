@@ -23,14 +23,11 @@ def handler(event: dict, context) -> dict:
     image_b64 = body.get("image_b64", "")
     content_type = body.get("content_type", "image/jpeg")
 
-    if content_type not in ("image/jpeg", "image/png"):
-        return {"statusCode": 400, "headers": CORS, "body": json.dumps({"error": "Принимаются только PNG и JPEG"})}
-
     if not title or not image_b64:
         return {"statusCode": 400, "headers": CORS, "body": json.dumps({"error": "title и image_b64 обязательны"})}
 
     image_data = base64.b64decode(image_b64)
-    ext = "jpg" if "jpeg" in content_type else "png"
+    ext = "jpg"
     key = f"photos/{uuid.uuid4()}.{ext}"
 
     s3 = boto3.client(

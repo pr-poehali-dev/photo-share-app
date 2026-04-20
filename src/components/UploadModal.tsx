@@ -7,34 +7,68 @@ interface UploadModalProps {
   onUploaded: () => void;
 }
 
+const MAX_SIDE = 1920;
+const JPEG_QUALITY = 0.88;
+
+function compressToJpeg(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+      if (width > MAX_SIDE || height > MAX_SIDE) {
+        if (width > height) { height = Math.round(height * MAX_SIDE / width); width = MAX_SIDE; }
+        else { width = Math.round(width * MAX_SIDE / height); height = MAX_SIDE; }
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, 0, 0, width, height);
+      const dataUrl = canvas.toDataURL("image/jpeg", JPEG_QUALITY);
+      resolve(dataUrl.split(",")[1]);
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
 export default function UploadModal({ onClose, onUploaded }: UploadModalProps) {
   const [title, setTitle] = useState("");
   const [preview, setPreview] = useState<string | null>(null);
   const [imageB64, setImageB64] = useState<string>("");
-  const [contentType, setContentType] = useState("image/jpeg");
   const [loading, setLoading] = useState(false);
+  const [compressing, setCompressing] = useState(false);
   const [error, setError] = useState("");
   const [dragOver, setDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const processFile = useCallback((file: File) => {
-    if (file.type !== "image/jpeg" && file.type !== "image/png") {
-      setError("Принимаются только PNG и JPEG");
+  const processFile = useCallback(async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      setError("Выберите файл изображения");
       return;
     }
-    if (file.size > 10 * 1024 * 1024) {
-      setError("Файл не должен превышать 10 МБ");
+    if (file.size > 50 * 1024 * 1024) {
+      setError("Файл не должен превышать 50 МБ");
       return;
     }
-    setContentType(file.type);
     setError("");
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const result = e.target?.result as string;
-      setPreview(result);
-      setImageB64(result.split(",")[1]);
-    };
-    reader.readAsDataURL(file);
+    setCompressing(true);
+
+    // Показываем превью сразу
+    const previewUrl = URL.createObjectURL(file);
+    setPreview(previewUrl);
+
+    try {
+      const b64 = await compressToJpeg(file);
+      setImageB64(b64);
+    } catch {
+      setError("Не удалось обработать изображение");
+      setPreview(null);
+    } finally {
+      setCompressing(false);
+    }
   }, []);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
@@ -50,11 +84,7 @@ export default function UploadModal({ onClose, onUploaded }: UploadModalProps) {
     setLoading(true);
     setError("");
     try {
-      await uploadPhoto({
-        title: title.trim(),
-        image_b64: imageB64,
-        content_type: contentType,
-      });
+      await uploadPhoto({ title: title.trim(), image_b64: imageB64, content_type: "image/jpeg" });
       onUploaded();
       onClose();
     } catch (e: unknown) {
@@ -72,7 +102,6 @@ export default function UploadModal({ onClose, onUploaded }: UploadModalProps) {
         style={{ background: "hsl(220, 18%, 9%)", border: "1px solid hsl(220, 15%, 18%)" }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-border">
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 via-pink-500 to-purple-600 flex items-center justify-center">
@@ -92,11 +121,9 @@ export default function UploadModal({ onClose, onUploaded }: UploadModalProps) {
           {/* Drop zone */}
           <div
             className={`relative rounded-xl border-2 border-dashed transition-all duration-300 cursor-pointer overflow-hidden ${
-              dragOver
-                ? "border-purple-500/70 bg-purple-500/8"
-                : preview
-                ? "border-border"
-                : "border-border hover:border-purple-500/40 hover:bg-white/2"
+              dragOver ? "border-purple-500/70 bg-purple-500/8"
+              : preview ? "border-border"
+              : "border-border hover:border-purple-500/40 hover:bg-white/2"
             }`}
             style={{ minHeight: "180px" }}
             onClick={() => inputRef.current?.click()}
@@ -107,9 +134,17 @@ export default function UploadModal({ onClose, onUploaded }: UploadModalProps) {
             {preview ? (
               <div className="relative">
                 <img src={preview} alt="preview" className="w-full h-44 object-cover" />
-                <div className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <p className="text-white text-sm font-body">Нажмите чтобы заменить</p>
-                </div>
+                {compressing && (
+                  <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-2">
+                    <Icon name="Loader2" size={22} className="animate-spin text-white" />
+                    <p className="text-white text-xs font-body">Оптимизирую...</p>
+                  </div>
+                )}
+                {!compressing && (
+                  <div className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <p className="text-white text-sm font-body">Нажмите чтобы заменить</p>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center h-44 gap-3 text-muted-foreground">
@@ -118,7 +153,7 @@ export default function UploadModal({ onClose, onUploaded }: UploadModalProps) {
                 </div>
                 <div className="text-center">
                   <p className="text-sm font-body text-foreground">Перетащите или нажмите</p>
-                  <p className="text-xs mt-1">PNG или JPEG · до 10 МБ</p>
+                  <p className="text-xs mt-1">Любой формат · до 50 МБ</p>
                 </div>
               </div>
             )}
@@ -126,12 +161,11 @@ export default function UploadModal({ onClose, onUploaded }: UploadModalProps) {
           <input
             ref={inputRef}
             type="file"
-            accept="image/png,image/jpeg"
+            accept="image/*"
             className="hidden"
             onChange={(e) => { if (e.target.files?.[0]) processFile(e.target.files[0]); }}
           />
 
-          {/* Title */}
           <div>
             <label className="text-xs text-muted-foreground font-body mb-1.5 block">Название *</label>
             <input
@@ -149,22 +183,17 @@ export default function UploadModal({ onClose, onUploaded }: UploadModalProps) {
             </p>
           )}
 
-          {/* Submit */}
           <button
             onClick={handleSubmit}
-            disabled={loading}
+            disabled={loading || compressing}
             className="w-full py-3 rounded-xl font-body font-medium text-sm text-white bg-gradient-to-r from-amber-400 via-pink-500 to-purple-600 hover:opacity-90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {loading ? (
-              <>
-                <Icon name="Loader2" size={16} className="animate-spin" />
-                Загружаю...
-              </>
+              <><Icon name="Loader2" size={16} className="animate-spin" />Загружаю...</>
+            ) : compressing ? (
+              <><Icon name="Loader2" size={16} className="animate-spin" />Обрабатываю...</>
             ) : (
-              <>
-                <Icon name="Upload" size={16} />
-                Опубликовать фото
-              </>
+              <><Icon name="Upload" size={16} />Опубликовать фото</>
             )}
           </button>
         </div>
