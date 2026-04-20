@@ -40,7 +40,7 @@ def handler(event: dict, context) -> dict:
         aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY"],
     )
     s3.put_object(Bucket="files", Key=key, Body=image_data, ContentType=content_type)
-    image_url = f"https://cdn.poehali.dev/projects/{os.environ['AWS_ACCESS_KEY_ID']}/files/{key}"
+    image_url = f"https://cdn.poehali.dev/projects/{os.environ['AWS_ACCESS_KEY_ID']}/bucket/{key}"
 
     conn = psycopg2.connect(os.environ["DATABASE_URL"])
     cur = conn.cursor()
