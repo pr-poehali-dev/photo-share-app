@@ -17,9 +17,14 @@ export interface ApiPhoto {
   created_at: string;
 }
 
+async function parseBody(res: Response) {
+  const text = await res.text();
+  try { return JSON.parse(JSON.parse(text)); } catch { return JSON.parse(text); }
+}
+
 export async function fetchPhotos(): Promise<ApiPhoto[]> {
   const res = await fetch(URLS.getPhotos);
-  const data = JSON.parse(await res.json());
+  const data = await parseBody(res);
   return data.photos ?? [];
 }
 
@@ -33,7 +38,7 @@ export async function uploadPhoto(payload: {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-  const data = JSON.parse(await res.json());
+  const data = await parseBody(res);
   if (!res.ok) throw new Error(data.error || "Ошибка загрузки");
   return data;
 }
@@ -44,7 +49,7 @@ export async function toggleLike(photoId: number, sessionId: string): Promise<{ 
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ photo_id: photoId, session_id: sessionId }),
   });
-  return JSON.parse(await res.json());
+  return parseBody(res);
 }
 
 export async function incrementView(photoId: number): Promise<void> {

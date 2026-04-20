@@ -225,11 +225,7 @@ export default function Index() {
                     alt={photo.title}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
-                  <div className="absolute top-3 left-3">
-                    <span className="text-xs px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-md text-white/80 border border-white/15 font-body">
-                      {photo.category}
-                    </span>
-                  </div>
+
                 </div>
                 <div className="flex-1 p-6 flex flex-col justify-between">
                   <div>
