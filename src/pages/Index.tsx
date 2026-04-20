@@ -98,7 +98,7 @@ export default function Index() {
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 via-pink-500 to-purple-600 flex items-center justify-center">
               <Icon name="Camera" size={14} className="text-white" />
             </div>
-            <span className="font-display text-lg sm:text-xl text-foreground tracking-wide">ФотоЛента</span>
+            <span className="font-display text-lg sm:text-xl text-foreground tracking-wide">НаТворче</span>
           </div>
 
           {/* Tabs */}
@@ -149,8 +149,8 @@ export default function Index() {
               ? <>Лента <span className="grad-text italic">моментов</span></>
               : <>Галерея <span className="grad-text italic">работ</span></>}
           </h1>
-          <p className="text-muted-foreground text-sm sm:text-base max-w-xs sm:max-w-md mx-auto hidden sm:block">
-            {page === "feed" ? "Последние фотографии, отсортированные по дате" : "Все фотографии одним взглядом — нажмите для просмотра"}
+          <p className="text-muted-foreground text-sm sm:text-base max-w-xs sm:max-w-md mx-auto">
+            {page === "feed" ? "Делись самыми яркими моментами" : "Все фотографии одним взглядом — нажмите для просмотра"}
           </p>
         </div>
       </section>
