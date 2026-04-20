@@ -99,13 +99,6 @@ export default function Index() {
               <span>♥ {totalLikes}</span>
               <span>◎ {totalViews}</span>
             </div>
-            <button
-              onClick={() => setShowUpload(true)}
-              className="retro-btn-filled px-3 sm:px-4 py-1.5 text-xs sm:text-sm uppercase tracking-wider flex items-center gap-1.5"
-            >
-              <Icon name="Plus" size={13} />
-              <span className="hidden sm:inline">Добавить</span>
-            </button>
           </div>
         </div>
       </nav>
