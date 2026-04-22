@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import Icon from "@/components/ui/icon";
 import PhotoModal from "@/components/PhotoModal";
 import UploadModal from "@/components/UploadModal";
@@ -20,6 +20,71 @@ function apiToPhoto(p: ApiPhoto): PhotoWithApi {
   const date = new Date(p.created_at);
   const formatted = date.toLocaleDateString("ru-RU", { day: "numeric", month: "short", year: "numeric" });
   return { id: p.id + 10000, title: p.title, author: p.author, category: p.category, src: p.image_url, likes: p.likes, views: p.views, date: formatted, liked: false, _apiId: p.id };
+}
+
+interface PhotoCardProps {
+  photo: PhotoWithApi;
+  index: number;
+  onOpen: (photo: PhotoWithApi) => void;
+  onLike: (id: number) => void;
+  onInView: (photo: PhotoWithApi) => void;
+}
+
+function PhotoCard({ photo, index, onOpen, onLike, onInView }: PhotoCardProps) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { onInView(photo); observer.disconnect(); } },
+      { threshold: 0.3 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [photo, onInView]);
+
+  return (
+    <div
+      ref={ref}
+      className={`flex flex-col sm:flex-row group cursor-pointer opacity-0-init animate-fade-in stagger-${Math.min(index + 1, 6)} py-5 sm:py-6 gap-4 sm:gap-6 hover:bg-black/3 transition-colors`}
+      onClick={() => onOpen(photo)}
+    >
+      <div className="sm:w-72 md:w-80 relative overflow-hidden flex-shrink-0 border-2 border-foreground/30 photo-noise" style={{ aspectRatio: "16/10" }}>
+        <img
+          src={photo.src}
+          alt={photo.title}
+          className="w-full h-full object-cover grayscale-[15%] transition-all duration-500 group-hover:grayscale-0 group-hover:scale-105"
+        />
+        <div className="absolute top-2 left-2 font-mono text-xs bg-foreground text-background px-2 py-0.5">
+          #{String(index + 1).padStart(3, "0")}
+        </div>
+      </div>
+
+      <div className="flex-1 flex flex-col justify-between min-w-0">
+        <div>
+          <p className="font-mono text-xs text-muted-foreground mb-1 uppercase tracking-widest">{photo.date}</p>
+          <h2 className="font-display text-3xl sm:text-4xl text-foreground leading-tight mb-2">{photo.title.toUpperCase()}</h2>
+          <span className="retro-tag">ФОТО</span>
+        </div>
+
+        <div className="flex items-center gap-3 mt-4">
+          <button
+            onClick={(e) => { e.stopPropagation(); e.preventDefault(); onLike(photo.id); }}
+            onTouchEnd={(e) => { e.stopPropagation(); e.preventDefault(); onLike(photo.id); }}
+            className={`retro-btn px-3 py-1.5 text-xs flex items-center gap-1.5 touch-manipulation select-none ${photo.liked ? "!bg-foreground !text-background" : ""}`}
+          >
+            <Icon name="Heart" size={11} className={photo.liked ? "fill-current" : ""} />
+            {photo.likes}
+          </button>
+          <div className="font-mono text-xs text-muted-foreground flex items-center gap-1.5">
+            <Icon name="Eye" size={11} />
+            {photo.views.toLocaleString()}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function Index() {
@@ -60,14 +125,19 @@ export default function Index() {
     }
   };
 
-  const handleOpen = async (photo: PhotoWithApi) => {
+  const handleOpen = (photo: PhotoWithApi) => {
     const found = allPhotos.find((p) => p.id === photo.id) ?? photo;
     setSelectedPhoto(found);
-    if (found._apiId) {
-      try { await incrementView(found._apiId); } catch { /* ignore */ }
-      setApiPhotos((prev) => prev.map((p) => p.id === photo.id ? { ...p, views: p.views + 1 } : p));
-    }
   };
+
+  const viewedIds = useRef<Set<number>>(new Set());
+
+  const handleInView = useCallback(async (photo: PhotoWithApi) => {
+    if (!photo._apiId || viewedIds.current.has(photo.id)) return;
+    viewedIds.current.add(photo.id);
+    try { await incrementView(photo._apiId); } catch { /* ignore */ }
+    setApiPhotos((prev) => prev.map((p) => p.id === photo.id ? { ...p, views: p.views + 1 } : p));
+  }, []);
 
   const handleDelete = async (id: number) => {
     const photo = allPhotos.find((p) => p.id === id);
@@ -139,45 +209,14 @@ export default function Index() {
 
         <div className="space-y-0 divide-y-2 divide-foreground/20">
           {allPhotos.map((photo, i) => (
-            <div
+            <PhotoCard
               key={photo.id}
-              className={`flex flex-col sm:flex-row group cursor-pointer opacity-0-init animate-fade-in stagger-${Math.min(i + 1, 6)} py-5 sm:py-6 gap-4 sm:gap-6 hover:bg-black/3 transition-colors`}
-              onClick={() => handleOpen(photo)}
-            >
-              <div className="sm:w-72 md:w-80 relative overflow-hidden flex-shrink-0 border-2 border-foreground/30 photo-noise" style={{ aspectRatio: "16/10" }}>
-                <img
-                  src={photo.src}
-                  alt={photo.title}
-                  className="w-full h-full object-cover grayscale-[15%] transition-all duration-500 group-hover:grayscale-0 group-hover:scale-105"
-                />
-                <div className="absolute top-2 left-2 font-mono text-xs bg-foreground text-background px-2 py-0.5">
-                  #{String(i + 1).padStart(3, "0")}
-                </div>
-              </div>
-
-              <div className="flex-1 flex flex-col justify-between min-w-0">
-                <div>
-                  <p className="font-mono text-xs text-muted-foreground mb-1 uppercase tracking-widest">{photo.date}</p>
-                  <h2 className="font-display text-3xl sm:text-4xl text-foreground leading-tight mb-2">{photo.title.toUpperCase()}</h2>
-                  <span className="retro-tag">ФОТО</span>
-                </div>
-
-                <div className="flex items-center gap-3 mt-4">
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleLike(photo.id); }}
-                    className={`retro-btn px-3 py-1.5 text-xs flex items-center gap-1.5 ${photo.liked ? "!bg-foreground !text-background" : ""}`}
-                  >
-                    <Icon name="Heart" size={11} className={photo.liked ? "fill-current" : ""} />
-                    {photo.likes}
-                  </button>
-                  <div className="font-mono text-xs text-muted-foreground flex items-center gap-1.5">
-                    <Icon name="Eye" size={11} />
-                    {photo.views.toLocaleString()}
-                  </div>
-
-                </div>
-              </div>
-            </div>
+              photo={photo}
+              index={i}
+              onOpen={handleOpen}
+              onLike={handleLike}
+              onInView={handleInView}
+            />
           ))}
         </div>
 
@@ -199,11 +238,12 @@ export default function Index() {
         </div>
       </main>
 
-      {/* FAB mobile */}
-      <div className="fixed bottom-5 right-4 sm:hidden z-30">
+      {/* FAB — всегда виден */}
+      <div className="fixed bottom-5 right-5 z-30">
         <button
           onClick={() => setShowUpload(true)}
-          className="retro-btn-filled w-14 h-14 flex items-center justify-center text-xl font-display border-2 border-foreground active:scale-90 transition-transform"
+          className="retro-btn-filled w-14 h-14 flex items-center justify-center text-2xl font-display border-2 border-foreground active:scale-90 transition-transform shadow-lg"
+          title="Добавить фото"
         >
           +
         </button>
