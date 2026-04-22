@@ -55,11 +55,16 @@ function PhotoCard({ photo, index, onOpen, onLike, onInView }: PhotoCardProps) {
         {/* Шапка карточки белая */}
         <div className="flex items-center justify-between px-3 py-2" style={{ borderBottom: "1px solid rgba(0,0,150,0.15)" }}>
           <div className="flex items-center gap-2 min-w-0">
-            <div className="w-6 h-6 rounded-full flex-shrink-0 overflow-hidden" style={{ border: "1px solid rgba(0,0,150,0.2)" }}>
-              <img src="https://cdn.poehali.dev/files/281fb03e-20f5-4c7a-9b1f-a7018a0efae8.jpg" alt="fox" className="w-full h-full object-cover" />
-            </div>
+            <img
+              src="https://cdn.poehali.dev/files/e0676edc-9002-4ae9-8934-4099ea16d7cf.png"
+              alt="fox"
+              className="w-8 h-8 object-contain flex-shrink-0"
+              style={{ imageRendering: "pixelated" }}
+            />
             <div className="min-w-0">
-              <p className="font-mono text-[11px] font-bold text-[#1a00cc] truncate">{photo.author || "НаТворче"}</p>
+              <p className="font-mono text-[11px] font-bold text-[#1a00cc] truncate">
+                {photo.author && photo.author !== "Аноним" ? photo.author : "НаТворче"}
+              </p>
               <p className="font-mono text-[9px] text-gray-400">{photo.date}</p>
             </div>
           </div>
@@ -81,9 +86,8 @@ function PhotoCard({ photo, index, onOpen, onLike, onInView }: PhotoCardProps) {
           <div className="flex items-center gap-3">
             <button
               onClick={(e) => { e.stopPropagation(); e.preventDefault(); onLike(photo.id); }}
-              onTouchEnd={(e) => { e.stopPropagation(); e.preventDefault(); onLike(photo.id); }}
-              className="flex items-center gap-1 font-mono text-[11px] touch-manipulation select-none transition-colors"
-              style={{ color: photo.liked ? "#e8002d" : "#555" }}
+              className="flex items-center gap-1 font-mono text-[11px] select-none transition-colors"
+              style={{ color: photo.liked ? "#e8002d" : "#555", WebkitTapHighlightColor: "transparent" }}
             >
               <Icon name="Heart" size={13} className={photo.liked ? "fill-current" : ""} />
               <span>{photo.likes}</span>
@@ -174,10 +178,10 @@ export default function Index() {
           <div className="flex items-center gap-2">
             {/* Лисичка */}
             <img
-              src="https://cdn.poehali.dev/files/281fb03e-20f5-4c7a-9b1f-a7018a0efae8.jpg"
+              src="https://cdn.poehali.dev/files/e0676edc-9002-4ae9-8934-4099ea16d7cf.png"
               alt="fox"
-              className="w-8 h-8 object-cover flex-shrink-0"
-              style={{ imageRendering: "pixelated", border: "1px solid rgba(255,255,255,0.3)" }}
+              className="w-10 h-10 object-contain flex-shrink-0"
+              style={{ imageRendering: "pixelated" }}
             />
             {/* Логотип */}
             <div className="flex items-center gap-0.5">
@@ -220,8 +224,12 @@ export default function Index() {
             [ поделиться фото ]
           </button>
         </div>
-        {/* Разделитель белый */}
-        <div style={{ height: "3px", background: "rgba(255,255,255,0.15)" }} />
+        {/* Бегущая строка */}
+        <div className="ticker-wrap border-t border-white/20 py-2 text-white/40 font-mono text-xs">
+          <div className="ticker">
+            {"ААААААААААААЛТАЙ] 4 – 3 – 2 [ААААААААААА ТВОРЧЕСКИЙ ФЕСТИВАЛЬ 2026 [ ААААААААААААЛТАЙ] 4 – 3 – 2 [ААААААААААА ТВОРЧЕСКИЙ ФЕСТИВАЛЬ 2026 ".repeat(2)}
+          </div>
+        </div>
       </section>
 
       {/* ЛЕНТА ФОТО — как в соцсети */}
