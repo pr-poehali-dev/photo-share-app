@@ -20,6 +20,7 @@ def handler(event: dict, context) -> dict:
 
     body = json.loads(event.get("body") or "{}")
     title = (body.get("title") or "").strip()
+    author = (body.get("author") or "").strip() or "НаТворче"
     image_b64 = body.get("image_b64", "")
     content_type = body.get("content_type", "image/jpeg")
 
@@ -43,7 +44,7 @@ def handler(event: dict, context) -> dict:
     cur = conn.cursor()
     cur.execute(
         f"INSERT INTO {SCHEMA}.photos (title, author, category, image_url) VALUES (%s, %s, %s, %s) RETURNING id, created_at",
-        (title, "Аноним", "Другое", image_url),
+        (title, author, "Другое", image_url),
     )
     row = cur.fetchone()
     conn.commit()

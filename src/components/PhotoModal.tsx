@@ -101,13 +101,7 @@ export default function PhotoModal({ photo, onClose, onLike, onDelete, onPrev, o
               </button>
             )}
 
-            <button
-              onClick={onClose}
-              className="absolute top-2 right-2 sm:hidden w-8 h-8 flex items-center justify-center text-white active:scale-90"
-              style={{ background: "rgba(200,0,0,0.6)", border: "1px solid rgba(255,255,255,0.3)" }}
-            >
-              <Icon name="X" size={14} />
-            </button>
+
           </div>
 
           {/* Панель */}
@@ -123,35 +117,6 @@ export default function PhotoModal({ photo, onClose, onLike, onDelete, onPrev, o
             </div>
 
             <div className="p-4 space-y-3 flex-1 overflow-y-auto">
-              <div className="flex items-center gap-3 p-2.5"
-                style={{ border: "1px solid rgba(255,255,255,0.15)", background: "rgba(255,255,255,0.05)" }}
-              >
-                <Icon name="Eye" size={13} className="text-white/50 flex-shrink-0" />
-                <div>
-                  <p className="font-mono font-bold text-white text-sm leading-none">{photo.views.toLocaleString()}</p>
-                  <p className="font-mono text-[10px] text-white/40 mt-0.5 uppercase tracking-wider">просмотров</p>
-                </div>
-              </div>
-
-              <button
-                onClick={() => onLike(photo.id)}
-                onTouchEnd={(e) => { e.preventDefault(); onLike(photo.id); }}
-                className="w-full p-2.5 flex items-center gap-3 transition-all active:scale-[0.97] touch-manipulation select-none"
-                style={{
-                  border: photo.liked ? "1px solid #e8ff5a" : "1px solid rgba(255,255,255,0.15)",
-                  background: photo.liked ? "rgba(232,255,90,0.1)" : "rgba(255,255,255,0.05)",
-                  color: photo.liked ? "#e8ff5a" : "white",
-                }}
-              >
-                <Icon name="Heart" size={13} className={`flex-shrink-0 ${photo.liked ? "fill-current" : ""}`} />
-                <div className="text-left">
-                  <p className="font-mono font-bold text-sm leading-none">{photo.likes}</p>
-                  <p className="font-mono text-[10px] mt-0.5 uppercase tracking-wider opacity-60">
-                    {photo.liked ? "вам нравится" : "нравится"}
-                  </p>
-                </div>
-              </button>
-
               {onDelete && (
                 confirmDelete ? (
                   <div className="flex gap-2">

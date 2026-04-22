@@ -47,6 +47,7 @@ async function fileToJpegB64(file: File): Promise<{ b64: string; previewUrl: str
 
 export default function UploadModal({ onClose, onUploaded }: UploadModalProps) {
   const [title, setTitle] = useState("");
+  const [author, setAuthor] = useState("");
   const [preview, setPreview] = useState<string | null>(null);
   const [imageB64, setImageB64] = useState<string>("");
   const [loading, setLoading] = useState(false);
@@ -83,7 +84,7 @@ export default function UploadModal({ onClose, onUploaded }: UploadModalProps) {
     if (!imageB64) { setError("[ ОШИБКА ] Выберите фотографию"); return; }
     setLoading(true); setError("");
     try {
-      await uploadPhoto({ title: title.trim(), image_b64: imageB64, content_type: "image/jpeg" });
+      await uploadPhoto({ title: title.trim(), author: author.trim(), image_b64: imageB64, content_type: "image/jpeg" });
       onUploaded(); onClose();
     } catch (e: unknown) {
       setError(`[ ОШИБКА ] ${e instanceof Error ? e.message : "Ошибка загрузки"}`);
@@ -173,6 +174,19 @@ export default function UploadModal({ onClose, onUploaded }: UploadModalProps) {
               onChange={(e) => setTitle(e.target.value)}
               placeholder="ВВЕДИТЕ НАЗВАНИЕ..."
               className="retro-input w-full px-3 py-2.5 text-sm uppercase tracking-wide"
+            />
+          </div>
+
+          {/* Поле имени */}
+          <div>
+            <label className="font-mono text-xs text-white/50 uppercase tracking-wider mb-1.5 block">
+              &gt; ВАШЕ ИМЯ (необязательно)
+            </label>
+            <input
+              value={author}
+              onChange={(e) => setAuthor(e.target.value)}
+              placeholder="КАК ВАС ЗОВУТ..."
+              className="retro-input w-full px-3 py-2.5 text-sm tracking-wide"
             />
           </div>
 

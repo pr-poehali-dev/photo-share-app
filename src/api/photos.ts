@@ -30,6 +30,7 @@ export async function fetchPhotos(): Promise<ApiPhoto[]> {
 
 export async function uploadPhoto(payload: {
   title: string;
+  author?: string;
   image_b64: string;
   content_type: string;
 }): Promise<ApiPhoto> {
