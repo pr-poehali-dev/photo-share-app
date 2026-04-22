@@ -38,7 +38,7 @@ function PhotoCard({ photo, index, onOpen, onLike, onInView }: PhotoCardProps) {
     if (!el) return;
     const observer = new IntersectionObserver(
       ([entry]) => { if (entry.isIntersecting) { onInView(photo); observer.disconnect(); } },
-      { threshold: 0.3 }
+      { threshold: 0.25 }
     );
     observer.observe(el);
     return () => observer.disconnect();
@@ -50,56 +50,46 @@ function PhotoCard({ photo, index, onOpen, onLike, onInView }: PhotoCardProps) {
       className={`opacity-0-init animate-fade-in stagger-${Math.min(index + 1, 6)} group cursor-pointer`}
       onClick={() => onOpen(photo)}
     >
-      {/* Windows XP окно */}
-      <div className="border border-[rgba(255,255,255,0.25)] overflow-hidden"
-        style={{
-          background: "linear-gradient(135deg, rgba(100,180,255,0.15) 0%, rgba(50,100,200,0.08) 100%)",
-          boxShadow: "0 0 0 1px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.15)",
-        }}
-      >
-        {/* Titlebar */}
-        <div className="win-titlebar">
-          <div className="w-3 h-3 rounded-sm bg-white/30 flex-shrink-0" />
-          <span className="flex-1 text-[10px] font-bold truncate" style={{ fontFamily: "Tahoma, sans-serif" }}>
-            {photo.title}
-          </span>
-          <div className="flex gap-0.5 ml-auto">
-            <div className="win-btn win-btn-min">─</div>
-            <div className="win-btn win-btn-max">□</div>
-            <div className="win-btn win-btn-close">✕</div>
+      {/* Карточка — белая рамка, лента */}
+      <div style={{ border: "2px solid rgba(255,255,255,0.85)", background: "white", overflow: "hidden" }}>
+        {/* Шапка карточки белая */}
+        <div className="flex items-center justify-between px-3 py-2" style={{ borderBottom: "1px solid rgba(0,0,150,0.15)" }}>
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-6 h-6 rounded-full flex-shrink-0 overflow-hidden" style={{ border: "1px solid rgba(0,0,150,0.2)" }}>
+              <img src="https://cdn.poehali.dev/files/281fb03e-20f5-4c7a-9b1f-a7018a0efae8.jpg" alt="fox" className="w-full h-full object-cover" />
+            </div>
+            <div className="min-w-0">
+              <p className="font-mono text-[11px] font-bold text-[#1a00cc] truncate">{photo.author || "НаТворче"}</p>
+              <p className="font-mono text-[9px] text-gray-400">{photo.date}</p>
+            </div>
           </div>
+          <span className="font-mono text-[9px] text-gray-300 flex-shrink-0">#{String(index + 1).padStart(3, "0")}</span>
         </div>
 
-        {/* Фото */}
-        <div className="relative overflow-hidden photo-noise" style={{ aspectRatio: "4/3" }}>
+        {/* Фото — квадрат */}
+        <div className="relative overflow-hidden photo-noise" style={{ aspectRatio: "1/1" }}>
           <img
             src={photo.src}
             alt={photo.title}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
-          {/* Номер */}
-          <div className="absolute top-2 left-2 font-mono text-[10px] bg-black/60 text-white px-1.5 py-0.5 border border-white/20">
-            #{String(index + 1).padStart(3, "0")}
-          </div>
         </div>
 
-        {/* Подвал карточки */}
-        <div className="p-2 flex items-center justify-between gap-2"
-          style={{ background: "rgba(0,0,60,0.4)", borderTop: "1px solid rgba(255,255,255,0.1)" }}
-        >
-          <p className="font-mono text-[10px] text-white/60 truncate">{photo.date}</p>
-          <div className="flex items-center gap-2 flex-shrink-0">
+        {/* Подпись */}
+        <div className="px-3 py-2.5" style={{ background: "white" }}>
+          <p className="font-mono text-[12px] font-bold text-[#1a00cc] leading-snug mb-2">{photo.title}</p>
+          <div className="flex items-center gap-3">
             <button
               onClick={(e) => { e.stopPropagation(); e.preventDefault(); onLike(photo.id); }}
               onTouchEnd={(e) => { e.stopPropagation(); e.preventDefault(); onLike(photo.id); }}
               className="flex items-center gap-1 font-mono text-[11px] touch-manipulation select-none transition-colors"
-              style={{ color: photo.liked ? "#e8ff5a" : "rgba(255,255,255,0.7)" }}
+              style={{ color: photo.liked ? "#e8002d" : "#555" }}
             >
-              <Icon name="Heart" size={11} className={photo.liked ? "fill-current" : ""} />
-              {photo.likes}
+              <Icon name="Heart" size={13} className={photo.liked ? "fill-current" : ""} />
+              <span>{photo.likes}</span>
             </button>
-            <div className="flex items-center gap-1 font-mono text-[11px] text-white/50">
-              <Icon name="Eye" size={11} />
+            <div className="flex items-center gap-1 font-mono text-[11px] text-gray-400">
+              <Icon name="Eye" size={12} />
               {photo.views.toLocaleString()}
             </div>
           </div>
@@ -175,101 +165,75 @@ export default function Index() {
   const totalLikes = allPhotos.reduce((acc, p) => acc + p.likes, 0);
   const totalViews = allPhotos.reduce((acc, p) => acc + p.views, 0);
 
-  const tickerText = "ААААААААААААЛТАЙ] 4 – 3 – 2 [ААААААААААА ТВОРЧЕСКИЙ ФЕСТИВАЛЬ 2026 [ ААААААААААААЛТАЙ] 4 – 3 – 2 [ААААААААААА ТВОРЧЕСКИЙ ФЕСТИВАЛЬ 2026 ";
-
   return (
     <div className="min-h-screen" style={{ background: "#1a00cc" }}>
 
       {/* NAV */}
       <nav className="sticky top-0 z-40 nav-blur">
-        <div className="max-w-5xl mx-auto px-4 h-12 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            {/* Логотип в стиле скобок */}
-            <div className="flex items-center gap-1">
-              <span className="font-mono text-lg font-bold text-white/30">[</span>
-              <div>
-                <span className="font-mono text-base font-bold text-white tracking-tight">ТВОРЧ</span>
-                <span className="font-mono text-xs text-[#e8ff5a] block leading-none" style={{ fontFamily: "monospace" }}>СО «Алтай»</span>
-              </div>
-              <span className="font-mono text-lg font-bold text-white/30">]</span>
+        <div className="max-w-2xl mx-auto px-4 h-13 flex items-center justify-between gap-3" style={{ height: "52px" }}>
+          <div className="flex items-center gap-2">
+            {/* Лисичка */}
+            <img
+              src="https://cdn.poehali.dev/files/281fb03e-20f5-4c7a-9b1f-a7018a0efae8.jpg"
+              alt="fox"
+              className="w-8 h-8 object-cover flex-shrink-0"
+              style={{ imageRendering: "pixelated", border: "1px solid rgba(255,255,255,0.3)" }}
+            />
+            {/* Логотип */}
+            <div className="flex items-center gap-0.5">
+              <span className="font-mono text-base font-bold text-white/40">[</span>
+              <span className="font-mono text-base font-bold text-white tracking-tight">НаТворче</span>
+              <span className="font-mono text-base font-bold text-white/40">]</span>
             </div>
+            <span className="hidden sm:inline font-mono text-[10px] text-[#e8ff5a] border border-[#e8ff5a]/40 px-1.5 py-0.5">СО «Алтай»</span>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="hidden sm:flex items-center gap-4 font-mono text-xs text-white/50">
-              <span className="flex items-center gap-1">
-                <Icon name="Heart" size={10} className="text-[#e8ff5a]" />
-                {totalLikes}
-              </span>
-              <span className="flex items-center gap-1">
-                <Icon name="Eye" size={10} />
-                {totalViews}
-              </span>
-            </div>
+          <div className="flex items-center gap-3 font-mono text-xs text-white/50">
+            <span className="flex items-center gap-1">
+              <Icon name="Heart" size={10} className="text-[#e8ff5a]" />
+              {totalLikes}
+            </span>
+            <span className="flex items-center gap-1">
+              <Icon name="Eye" size={10} />
+              {totalViews}
+            </span>
           </div>
         </div>
       </nav>
 
-      {/* HERO — синий блок с текстом как на фото */}
+      {/* HERO */}
       <section className="relative overflow-hidden" style={{ background: "#2200ee" }}>
-        {/* Шум поверх */}
         <div className="absolute inset-0 pointer-events-none photo-noise" />
-
-        <div className="max-w-5xl mx-auto px-5 py-10 sm:py-14 relative z-10">
-          <div className="font-mono text-xs text-white/50 tracking-[0.3em] uppercase mb-4">
-            творческий фестиваль 2026
+        <div className="max-w-2xl mx-auto px-5 py-8 relative z-10">
+          <div className="font-mono text-[10px] text-white/50 tracking-[0.3em] uppercase mb-3">
+            [ творческий фестиваль 2026 ]
           </div>
-
-          <h1 className="font-bold text-white leading-tight mb-6 glitch"
-            data-text="привет! я — творческий фестиваль!"
-            style={{ fontSize: "clamp(1.6rem, 5vw, 3rem)", fontFamily: "IBM Plex Mono, monospace", fontStyle: "italic" }}
+          <p className="font-mono text-white leading-relaxed mb-5"
+            style={{ fontSize: "clamp(0.95rem, 3vw, 1.2rem)" }}
           >
-            привет! я — <em>творческий фестиваль!</em>
-          </h1>
-
-          <p className="font-mono text-white leading-relaxed mb-6"
-            style={{ fontSize: "clamp(1rem, 3vw, 1.4rem)" }}
-          >
-            совсем скоро мы с тобой увидимся! хореограф / фотограф / видеограф / танцор / дизайнер / творец / креативщик / зритель / <em>и ты!</em>
+            Делись самыми яркими моментами с фестиваля — пусть эти мгновения оживут снова!
           </p>
-
-          <p className="font-mono text-white leading-relaxed mb-6"
-            style={{ fontSize: "clamp(0.9rem, 2.5vw, 1.2rem)" }}
+          <button
+            onClick={() => setShowUpload(true)}
+            className="retro-btn-yellow px-5 py-2 text-xs font-mono uppercase tracking-widest"
           >
-            я жду твою <span className="border border-[#e8ff5a] px-1 text-[#e8ff5a]">заявку</span> и верю, что именно ты засияешь вместе со <em>студенческими отрядами Алтайского края!</em>
-          </p>
-
-          <div className="flex items-center gap-3 flex-wrap">
-            <button
-              onClick={() => setShowUpload(true)}
-              className="retro-btn-yellow px-5 py-2 text-sm font-mono uppercase tracking-widest"
-            >
-              [ поделиться фото ]
-            </button>
-            <div className="font-mono text-xs text-white/40">
-              {allPhotos.length} фото в ленте
-            </div>
-          </div>
+            [ поделиться фото ]
+          </button>
         </div>
-
-        {/* Бегущая строка внизу блока */}
-        <div className="ticker-wrap border-t border-white/20 py-2 text-white/40 font-mono text-xs">
-          <div className="ticker">
-            {tickerText}{tickerText}
-          </div>
-        </div>
+        {/* Разделитель белый */}
+        <div style={{ height: "3px", background: "rgba(255,255,255,0.15)" }} />
       </section>
 
-      {/* GRID ФОТО */}
-      <main className="max-w-5xl mx-auto px-4 py-8 pb-28">
+      {/* ЛЕНТА ФОТО — как в соцсети */}
+      <main className="max-w-2xl mx-auto px-0 sm:px-4 py-4 pb-28">
         {loadingApi && apiPhotos.length === 0 && (
-          <div className="flex items-center gap-3 py-8 font-mono text-sm text-white/50">
+          <div className="flex items-center gap-3 py-8 font-mono text-sm text-white/50 px-4">
             <Icon name="Loader2" size={16} className="animate-spin" />
-            ЗАГРУЗКА ДАННЫХ...
+            ЗАГРУЗКА...
           </div>
         )}
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
+        <div className="flex flex-col gap-0 sm:gap-3 divide-y-4 sm:divide-y-0" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
           {allPhotos.map((photo, i) => (
             <PhotoCard
               key={photo.id}
@@ -284,7 +248,7 @@ export default function Index() {
 
         {allPhotos.length === 0 && !loadingApi && (
           <div className="py-20 font-mono text-sm text-white/40 text-center">
-            <p>[ ДАННЫЕ ОТСУТСТВУЮТ ]</p>
+            <p>[ пока нет фото — будь первым! ]</p>
           </div>
         )}
       </main>
