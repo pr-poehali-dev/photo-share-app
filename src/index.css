@@ -2,44 +2,43 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&family=IBM+Plex+Mono:ital,wght@0,400;0,700;1,400;1,700&family=VT323&display=swap");
+
 @layer base {
   :root {
-    /* Светлый фон с бумажной текстурой */
-    --background: 45 15% 94%;
-    --foreground: 0 0% 8%;
+    --background: 240 100% 27%;
+    --foreground: 0 0% 100%;
 
-    --card: 45 12% 90%;
-    --card-foreground: 0 0% 8%;
+    --card: 240 100% 22%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 45 12% 90%;
-    --popover-foreground: 0 0% 8%;
+    --popover: 240 100% 22%;
+    --popover-foreground: 0 0% 100%;
 
-    /* Электрик-синий акцент */
-    --primary: 220 100% 45%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 60 100% 75%;
+    --primary-foreground: 240 100% 15%;
 
-    --secondary: 45 10% 85%;
-    --secondary-foreground: 0 0% 15%;
+    --secondary: 240 80% 35%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 45 10% 88%;
-    --muted-foreground: 0 0% 40%;
+    --muted: 240 60% 40%;
+    --muted-foreground: 240 30% 80%;
 
-    --accent: 220 100% 45%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 60 100% 75%;
+    --accent-foreground: 240 100% 15%;
 
-    --destructive: 0 80% 45%;
+    --destructive: 0 80% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 72%;
-    --input: 45 10% 85%;
-    --ring: 220 100% 45%;
+    --border: 240 60% 50%;
+    --input: 240 80% 30%;
+    --ring: 60 100% 75%;
 
-    /* Квадратные углы — ретро */
     --radius: 0px;
 
-    --electric: #0047ff;
-    --electric-dim: rgba(0, 71, 255, 0.15);
-    --noise-opacity: 0.035;
+    --electric: #2200ff;
+    --yellow: #e8ff5a;
+    --noise-opacity: 0.08;
   }
 }
 
@@ -50,20 +49,14 @@
   }
 
   body {
-    @apply bg-background text-foreground font-mono;
-    /* Бумажный шум */
-    background-color: hsl(45 15% 94%);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    background-color: #1a00cc;
+    color: white;
+    font-family: "IBM Plex Mono", monospace;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.12'/%3E%3C/svg%3E");
+    min-height: 100vh;
   }
 
-  h1,
-  h2,
-  h3 {
-    @apply font-display;
-    letter-spacing: -0.01em;
-  }
-
-  /* Полоса сканлайна на всём сайте */
+  /* Сканлайны */
   body::after {
     content: "";
     position: fixed;
@@ -73,51 +66,181 @@
     background: repeating-linear-gradient(
       0deg,
       transparent,
-      transparent 2px,
-      rgba(0, 0, 0, 0.018) 2px,
-      rgba(0, 0, 0, 0.018) 4px
+      transparent 3px,
+      rgba(0, 0, 0, 0.06) 3px,
+      rgba(0, 0, 0, 0.06) 4px
+    );
+  }
+
+  /* Виньетка */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9998;
+    background: radial-gradient(
+      ellipse at center,
+      transparent 40%,
+      rgba(0, 0, 80, 0.45) 100%
     );
   }
 }
 
 @layer utilities {
-  /* Электрик-синий акцентный текст */
-  .grad-text {
-    color: var(--electric);
+  .blue-noise {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.1'/%3E%3C/svg%3E");
   }
 
-  /* Карточка — бумага с рамкой */
-  .card-glass {
-    background: hsl(45 12% 91%);
-    border: 1px solid hsl(0 0% 60%);
+  /* Пиксельный шум поверх фото */
+  .photo-noise::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.09'/%3E%3C/svg%3E");
+    mix-blend-mode: overlay;
+    opacity: 0.6;
+  }
+
+  /* Windows XP titlebar */
+  .win-titlebar {
+    background: linear-gradient(
+      to bottom,
+      #4a9ef5 0%,
+      #1a7bdd 50%,
+      #1567c8 100%
+    );
+    border-bottom: 1px solid #0a4fa0;
+    display: flex;
+    align-items: center;
+    padding: 2px 4px;
+    gap: 4px;
+    font-family: "Tahoma", sans-serif;
+    font-size: 11px;
+    font-weight: bold;
+    color: white;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.4);
+  }
+
+  .win-btn {
+    width: 16px;
+    height: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: bold;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    font-family: "Tahoma", sans-serif;
+    line-height: 1;
+  }
+
+  .win-btn-min {
+    background: linear-gradient(to bottom, #6dbff0, #3899e0);
+  }
+  .win-btn-max {
+    background: linear-gradient(to bottom, #6dbff0, #3899e0);
+  }
+  .win-btn-close {
+    background: linear-gradient(to bottom, #f07070, #e03030);
+  }
+
+  /* Ретро-кнопка жёлтая */
+  .retro-btn-yellow {
+    border: 2px solid #c8d400;
+    background: transparent;
+    color: #e8ff5a;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    padding: 4px 14px;
+    cursor: pointer;
+    transition: all 0.1s;
+    text-transform: uppercase;
+  }
+  .retro-btn-yellow:hover {
+    background: rgba(232, 255, 90, 0.15);
+  }
+
+  /* Ретро-кнопка белая */
+  .retro-btn {
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    background: transparent;
+    color: white;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: all 0.1s;
+  }
+  .retro-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: white;
+  }
+
+  /* Заполненная белая кнопка */
+  .retro-btn-filled {
+    background: rgba(255, 255, 255, 0.15);
+    border: 2px solid white;
+    color: white;
+    font-family: "IBM Plex Mono", monospace;
+    cursor: pointer;
+    transition: all 0.1s;
+  }
+  .retro-btn-filled:hover {
+    background: rgba(255, 255, 255, 0.25);
+  }
+
+  /* Инпут */
+  .retro-input {
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.4);
     border-radius: 0;
+    font-family: "IBM Plex Mono", monospace;
+    color: white;
+    outline: none;
+  }
+  .retro-input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+  }
+  .retro-input:focus {
+    border-color: #e8ff5a;
+    box-shadow: 0 0 0 2px rgba(232, 255, 90, 0.2);
+  }
+
+  /* Тег */
+  .retro-tag {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.65rem;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    padding: 1px 6px;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.6);
+    background: transparent;
+  }
+
+  /* Текст с заливкой желтый */
+  .text-yellow {
+    color: #e8ff5a;
+  }
+  .border-yellow {
+    border-color: #e8ff5a;
   }
 
   /* Навбар */
   .nav-blur {
-    background: hsl(45 15% 94%);
-    border-bottom: 2px solid hsl(0 0% 20%);
+    background: rgba(26, 0, 204, 0.92);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(4px);
   }
 
-  /* Фото-карточка */
-  .photo-card {
-    transition:
-      transform 0.15s ease,
-      box-shadow 0.15s ease;
-    border: 1px solid hsl(0 0% 55%);
-  }
-
-  .photo-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 4px 4px 0px hsl(0 0% 20%);
-  }
-
-  /* Глитч эффект на тексте */
+  /* Глитч */
   .glitch {
     position: relative;
     display: inline-block;
   }
-
   .glitch::before,
   .glitch::after {
     content: attr(data-text);
@@ -127,181 +250,32 @@
     width: 100%;
     height: 100%;
   }
-
   .glitch::before {
-    color: var(--electric);
+    color: #e8ff5a;
     clip-path: polygon(0 30%, 100% 30%, 100% 50%, 0 50%);
-    transform: translateX(-2px);
+    transform: translateX(-3px);
     opacity: 0;
-    animation: glitch-1 4s infinite;
+    animation: glitch-1 5s infinite;
   }
-
   .glitch::after {
-    color: hsl(0 80% 45%);
-    clip-path: polygon(0 55%, 100% 55%, 100% 70%, 0 70%);
-    transform: translateX(2px);
+    color: #ff4444;
+    clip-path: polygon(0 60%, 100% 60%, 100% 75%, 0 75%);
+    transform: translateX(3px);
     opacity: 0;
-    animation: glitch-2 4s infinite 0.5s;
+    animation: glitch-2 5s infinite 0.7s;
   }
 
-  /* Скобки вокруг элементов */
-  .bracket-left::before {
-    content: "[ ";
-    color: var(--electric);
-    font-family: "Share Tech Mono", monospace;
-    opacity: 0.7;
+  /* Текущий формат бегущей строки */
+  .ticker-wrap {
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .ticker {
+    display: inline-block;
+    animation: ticker-scroll 30s linear infinite;
   }
 
-  .bracket-right::after {
-    content: " ]";
-    color: var(--electric);
-    font-family: "Share Tech Mono", monospace;
-    opacity: 0.7;
-  }
-
-  /* Пиксельная рамка */
-  .pixel-border {
-    border: 2px solid hsl(0 0% 15%);
-    box-shadow: 3px 3px 0 hsl(0 0% 15%);
-  }
-
-  .pixel-border-blue {
-    border: 2px solid var(--electric);
-    box-shadow: 3px 3px 0 var(--electric);
-  }
-
-  /* Ретро-кнопка */
-  .retro-btn {
-    border: 2px solid hsl(0 0% 15%);
-    background: hsl(45 15% 94%);
-    color: hsl(0 0% 8%);
-    font-family: "Share Tech Mono", monospace;
-    letter-spacing: 0.05em;
-    box-shadow: 3px 3px 0 hsl(0 0% 15%);
-    transition: all 0.08s;
-    border-radius: 0;
-  }
-
-  .retro-btn:hover {
-    background: hsl(0 0% 15%);
-    color: hsl(45 15% 94%);
-    box-shadow: 1px 1px 0 hsl(0 0% 15%);
-    transform: translate(2px, 2px);
-  }
-
-  .retro-btn:active {
-    box-shadow: none;
-    transform: translate(3px, 3px);
-  }
-
-  .retro-btn-blue {
-    border: 2px solid var(--electric);
-    background: transparent;
-    color: var(--electric);
-    font-family: "Share Tech Mono", monospace;
-    letter-spacing: 0.05em;
-    box-shadow: 3px 3px 0 var(--electric);
-    transition: all 0.08s;
-    border-radius: 0;
-  }
-
-  .retro-btn-blue:hover {
-    background: var(--electric);
-    color: white;
-    box-shadow: 1px 1px 0 var(--electric);
-    transform: translate(2px, 2px);
-  }
-
-  .retro-btn-blue:active {
-    box-shadow: none;
-    transform: translate(3px, 3px);
-  }
-
-  /* Заполненная синяя кнопка */
-  .retro-btn-filled {
-    border: 2px solid hsl(0 0% 15%);
-    background: hsl(0 0% 10%);
-    color: hsl(45 15% 94%);
-    font-family: "Share Tech Mono", monospace;
-    letter-spacing: 0.05em;
-    box-shadow: 3px 3px 0 hsl(0 0% 35%);
-    transition: all 0.08s;
-    border-radius: 0;
-  }
-
-  .retro-btn-filled:hover {
-    background: var(--electric);
-    border-color: var(--electric);
-    box-shadow: 1px 1px 0 hsl(220 100% 25%);
-    transform: translate(2px, 2px);
-  }
-
-  .retro-btn-filled:active {
-    box-shadow: none;
-    transform: translate(3px, 3px);
-  }
-
-  /* Текстовый инпут */
-  .retro-input {
-    background: white;
-    border: 2px solid hsl(0 0% 30%);
-    border-radius: 0;
-    font-family: "Share Tech Mono", monospace;
-    color: hsl(0 0% 8%);
-    outline: none;
-  }
-
-  .retro-input:focus {
-    border-color: var(--electric);
-    box-shadow: 0 0 0 2px rgba(0, 71, 255, 0.15);
-  }
-
-  /* Горизонтальный разделитель — ретро */
-  .retro-divider {
-    border: none;
-    border-top: 1px solid hsl(0 0% 65%);
-    position: relative;
-  }
-
-  /* Оверлей на фото */
-  .img-overlay::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      to top,
-      rgba(0, 0, 0, 0.85) 0%,
-      rgba(0, 0, 0, 0.2) 50%,
-      transparent 100%
-    );
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
-
-  .img-overlay:hover::after {
-    opacity: 1;
-  }
-
-  /* Пиксельный шум поверх фото */
-  .photo-noise::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E");
-    mix-blend-mode: multiply;
-    opacity: 0.5;
-  }
-
-  /* Курсор-блинк */
-  .cursor-blink::after {
-    content: "█";
-    animation: blink 1s step-end infinite;
-    color: var(--electric);
-    font-size: 0.8em;
-  }
-
-  /* Stagger анимации */
+  /* Stagger */
   .stagger-1 {
     animation-delay: 0.05s;
   }
@@ -320,61 +294,19 @@
   .stagger-6 {
     animation-delay: 0.3s;
   }
-
   .opacity-0-init {
     opacity: 0;
   }
 
+  .cursor-blink::after {
+    content: "█";
+    animation: blink 1s step-end infinite;
+    color: #e8ff5a;
+    font-size: 0.85em;
+  }
+
   .scrollbar-hidden::-webkit-scrollbar {
     display: none;
-  }
-
-  /* Тег / метка */
-  .retro-tag {
-    font-family: "Share Tech Mono", monospace;
-    font-size: 0.7rem;
-    border: 1px solid hsl(0 0% 55%);
-    padding: 1px 6px;
-    letter-spacing: 0.08em;
-    color: hsl(0 0% 40%);
-    background: transparent;
-  }
-}
-
-/* Keyframes */
-@keyframes glitch-1 {
-  0%,
-  90%,
-  100% {
-    opacity: 0;
-    transform: translateX(-2px);
-  }
-  92%,
-  96% {
-    opacity: 0.8;
-    transform: translateX(-4px);
-  }
-  94% {
-    opacity: 0.4;
-    transform: translateX(2px);
-  }
-}
-
-@keyframes glitch-2 {
-  0%,
-  88%,
-  100% {
-    opacity: 0;
-    transform: translateX(2px);
-  }
-  90%,
-  96% {
-    opacity: 0.6;
-    transform: translateX(4px);
-  }
-  93% {
-    opacity: 0.3;
-    transform: translateX(-2px);
   }
 }
 
@@ -388,10 +320,59 @@
   }
 }
 
+@keyframes glitch-1 {
+  0%,
+  92%,
+  100% {
+    opacity: 0;
+    transform: translateX(-3px);
+  }
+  93% {
+    opacity: 0.7;
+    transform: translateX(-3px);
+  }
+  95% {
+    opacity: 0.7;
+    transform: translateX(3px);
+  }
+  97% {
+    opacity: 0;
+  }
+}
+
+@keyframes glitch-2 {
+  0%,
+  88%,
+  100% {
+    opacity: 0;
+    transform: translateX(3px);
+  }
+  89% {
+    opacity: 0.6;
+    transform: translateX(3px);
+  }
+  91% {
+    opacity: 0.6;
+    transform: translateX(-3px);
+  }
+  93% {
+    opacity: 0;
+  }
+}
+
+@keyframes ticker-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
 @keyframes fade-in {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
@@ -402,7 +383,7 @@
 @keyframes scale-in {
   from {
     opacity: 0;
-    transform: scale(0.97);
+    transform: scale(0.96);
   }
   to {
     opacity: 1;
@@ -410,32 +391,10 @@
   }
 }
 
-@keyframes slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(24px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out forwards;
 }
 
-@keyframes pulse-soft {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.15);
-  }
-}
-
-@keyframes scanline {
-  0% {
-    transform: translateY(-100%);
-  }
-  100% {
-    transform: translateY(100vh);
-  }
+.animate-scale-in {
+  animation: scale-in 0.25s ease-out forwards;
 }

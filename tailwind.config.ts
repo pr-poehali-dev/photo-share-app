@@ -17,8 +17,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ["VT323", "monospace"],
-        mono: ["Share Tech Mono", "monospace"],
+        display: ["IBM Plex Mono", "monospace"],
+        mono: ["IBM Plex Mono", "monospace"],
         body: ["IBM Plex Mono", "monospace"],
       },
       colors: {
@@ -27,7 +27,8 @@ export default {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
-        electric: "#0047FF",
+        electric: "#2200ff",
+        yellow: "#e8ff5a",
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",

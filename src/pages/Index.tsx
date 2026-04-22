@@ -47,39 +47,61 @@ function PhotoCard({ photo, index, onOpen, onLike, onInView }: PhotoCardProps) {
   return (
     <div
       ref={ref}
-      className={`flex flex-col sm:flex-row group cursor-pointer opacity-0-init animate-fade-in stagger-${Math.min(index + 1, 6)} py-5 sm:py-6 gap-4 sm:gap-6 hover:bg-black/3 transition-colors`}
+      className={`opacity-0-init animate-fade-in stagger-${Math.min(index + 1, 6)} group cursor-pointer`}
       onClick={() => onOpen(photo)}
     >
-      <div className="sm:w-72 md:w-80 relative overflow-hidden flex-shrink-0 border-2 border-foreground/30 photo-noise" style={{ aspectRatio: "16/10" }}>
-        <img
-          src={photo.src}
-          alt={photo.title}
-          className="w-full h-full object-cover grayscale-[15%] transition-all duration-500 group-hover:grayscale-0 group-hover:scale-105"
-        />
-        <div className="absolute top-2 left-2 font-mono text-xs bg-foreground text-background px-2 py-0.5">
-          #{String(index + 1).padStart(3, "0")}
+      {/* Windows XP окно */}
+      <div className="border border-[rgba(255,255,255,0.25)] overflow-hidden"
+        style={{
+          background: "linear-gradient(135deg, rgba(100,180,255,0.15) 0%, rgba(50,100,200,0.08) 100%)",
+          boxShadow: "0 0 0 1px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.15)",
+        }}
+      >
+        {/* Titlebar */}
+        <div className="win-titlebar">
+          <div className="w-3 h-3 rounded-sm bg-white/30 flex-shrink-0" />
+          <span className="flex-1 text-[10px] font-bold truncate" style={{ fontFamily: "Tahoma, sans-serif" }}>
+            {photo.title}
+          </span>
+          <div className="flex gap-0.5 ml-auto">
+            <div className="win-btn win-btn-min">─</div>
+            <div className="win-btn win-btn-max">□</div>
+            <div className="win-btn win-btn-close">✕</div>
+          </div>
         </div>
-      </div>
 
-      <div className="flex-1 flex flex-col justify-between min-w-0">
-        <div>
-          <p className="font-mono text-xs text-muted-foreground mb-1 uppercase tracking-widest">{photo.date}</p>
-          <h2 className="font-display text-3xl sm:text-4xl text-foreground leading-tight mb-2">{photo.title.toUpperCase()}</h2>
-          <span className="retro-tag">ФОТО</span>
+        {/* Фото */}
+        <div className="relative overflow-hidden photo-noise" style={{ aspectRatio: "4/3" }}>
+          <img
+            src={photo.src}
+            alt={photo.title}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+          {/* Номер */}
+          <div className="absolute top-2 left-2 font-mono text-[10px] bg-black/60 text-white px-1.5 py-0.5 border border-white/20">
+            #{String(index + 1).padStart(3, "0")}
+          </div>
         </div>
 
-        <div className="flex items-center gap-3 mt-4">
-          <button
-            onClick={(e) => { e.stopPropagation(); e.preventDefault(); onLike(photo.id); }}
-            onTouchEnd={(e) => { e.stopPropagation(); e.preventDefault(); onLike(photo.id); }}
-            className={`retro-btn px-3 py-1.5 text-xs flex items-center gap-1.5 touch-manipulation select-none ${photo.liked ? "!bg-foreground !text-background" : ""}`}
-          >
-            <Icon name="Heart" size={11} className={photo.liked ? "fill-current" : ""} />
-            {photo.likes}
-          </button>
-          <div className="font-mono text-xs text-muted-foreground flex items-center gap-1.5">
-            <Icon name="Eye" size={11} />
-            {photo.views.toLocaleString()}
+        {/* Подвал карточки */}
+        <div className="p-2 flex items-center justify-between gap-2"
+          style={{ background: "rgba(0,0,60,0.4)", borderTop: "1px solid rgba(255,255,255,0.1)" }}
+        >
+          <p className="font-mono text-[10px] text-white/60 truncate">{photo.date}</p>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <button
+              onClick={(e) => { e.stopPropagation(); e.preventDefault(); onLike(photo.id); }}
+              onTouchEnd={(e) => { e.stopPropagation(); e.preventDefault(); onLike(photo.id); }}
+              className="flex items-center gap-1 font-mono text-[11px] touch-manipulation select-none transition-colors"
+              style={{ color: photo.liked ? "#e8ff5a" : "rgba(255,255,255,0.7)" }}
+            >
+              <Icon name="Heart" size={11} className={photo.liked ? "fill-current" : ""} />
+              {photo.likes}
+            </button>
+            <div className="flex items-center gap-1 font-mono text-[11px] text-white/50">
+              <Icon name="Eye" size={11} />
+              {photo.views.toLocaleString()}
+            </div>
           </div>
         </div>
       </div>
@@ -98,7 +120,7 @@ export default function Index() {
     try {
       const data = await fetchPhotos();
       setApiPhotos(data.map(apiToPhoto));
-    } catch { /* fallback */ } finally { setLoadingApi(false); }
+    } catch (_e) { /* fallback */ } finally { setLoadingApi(false); }
   }, []);
 
   useEffect(() => { loadPhotos(); }, [loadPhotos]);
@@ -118,7 +140,7 @@ export default function Index() {
         const res = await toggleLike(photo._apiId, sessionId);
         setApiPhotos((prev) => prev.map((p) => p.id === id ? { ...p, liked: res.liked, likes: res.likes } : p));
         setSelectedPhoto((prev) => prev?.id === id ? { ...prev, liked: res.liked, likes: res.likes } : prev);
-      } catch { /* ignore */ }
+      } catch (_e) { /* ignore */ }
     } else {
       setApiPhotos((prev) => applyToggle(prev));
       setSelectedPhoto((prev) => prev?.id === id ? { ...prev, liked: !prev.liked, likes: prev.liked ? prev.likes - 1 : prev.likes + 1 } : prev);
@@ -135,7 +157,7 @@ export default function Index() {
   const handleInView = useCallback(async (photo: PhotoWithApi) => {
     if (!photo._apiId || viewedIds.current.has(photo.id)) return;
     viewedIds.current.add(photo.id);
-    try { await incrementView(photo._apiId); } catch { /* ignore */ }
+    try { await incrementView(photo._apiId); } catch (_e) { /* ignore */ }
     setApiPhotos((prev) => prev.map((p) => p.id === photo.id ? { ...p, views: p.views + 1 } : p));
   }, []);
 
@@ -153,61 +175,101 @@ export default function Index() {
   const totalLikes = allPhotos.reduce((acc, p) => acc + p.likes, 0);
   const totalViews = allPhotos.reduce((acc, p) => acc + p.views, 0);
 
+  const tickerText = "ААААААААААААЛТАЙ] 4 – 3 – 2 [ААААААААААА ТВОРЧЕСКИЙ ФЕСТИВАЛЬ 2026 [ ААААААААААААЛТАЙ] 4 – 3 – 2 [ААААААААААА ТВОРЧЕСКИЙ ФЕСТИВАЛЬ 2026 ";
+
   return (
-    <div className="min-h-screen bg-background font-body text-foreground">
+    <div className="min-h-screen" style={{ background: "#1a00cc" }}>
 
       {/* NAV */}
       <nav className="sticky top-0 z-40 nav-blur">
-        <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <span className="font-display text-3xl text-foreground leading-none">НаТворче</span>
-            <span className="retro-tag hidden sm:inline">v2.0</span>
+        <div className="max-w-5xl mx-auto px-4 h-12 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            {/* Логотип в стиле скобок */}
+            <div className="flex items-center gap-1">
+              <span className="font-mono text-lg font-bold text-white/30">[</span>
+              <div>
+                <span className="font-mono text-base font-bold text-white tracking-tight">ТВОРЧ</span>
+                <span className="font-mono text-xs text-[#e8ff5a] block leading-none" style={{ fontFamily: "monospace" }}>СО «Алтай»</span>
+              </div>
+              <span className="font-mono text-lg font-bold text-white/30">]</span>
+            </div>
           </div>
 
-          <div className="flex items-center gap-3 flex-shrink-0">
-            <div className="hidden md:flex items-center gap-3 font-mono text-xs text-muted-foreground">
-              <span>♥ {totalLikes}</span>
-              <span>◎ {totalViews}</span>
+          <div className="flex items-center gap-4">
+            <div className="hidden sm:flex items-center gap-4 font-mono text-xs text-white/50">
+              <span className="flex items-center gap-1">
+                <Icon name="Heart" size={10} className="text-[#e8ff5a]" />
+                {totalLikes}
+              </span>
+              <span className="flex items-center gap-1">
+                <Icon name="Eye" size={10} />
+                {totalViews}
+              </span>
             </div>
           </div>
         </div>
       </nav>
 
-      {/* HERO */}
-      <section className="max-w-5xl mx-auto px-4 pt-10 sm:pt-16 pb-8 sm:pb-12">
-        <div className="font-mono text-xs text-muted-foreground tracking-[0.3em] uppercase mb-3">
-          &gt;&gt; STREAM_MODE ████████████ OK
+      {/* HERO — синий блок с текстом как на фото */}
+      <section className="relative overflow-hidden" style={{ background: "#2200ee" }}>
+        {/* Шум поверх */}
+        <div className="absolute inset-0 pointer-events-none photo-noise" />
+
+        <div className="max-w-5xl mx-auto px-5 py-10 sm:py-14 relative z-10">
+          <div className="font-mono text-xs text-white/50 tracking-[0.3em] uppercase mb-4">
+            творческий фестиваль 2026
+          </div>
+
+          <h1 className="font-bold text-white leading-tight mb-6 glitch"
+            data-text="привет! я — творческий фестиваль!"
+            style={{ fontSize: "clamp(1.6rem, 5vw, 3rem)", fontFamily: "IBM Plex Mono, monospace", fontStyle: "italic" }}
+          >
+            привет! я — <em>творческий фестиваль!</em>
+          </h1>
+
+          <p className="font-mono text-white leading-relaxed mb-6"
+            style={{ fontSize: "clamp(1rem, 3vw, 1.4rem)" }}
+          >
+            совсем скоро мы с тобой увидимся! хореограф / фотограф / видеограф / танцор / дизайнер / творец / креативщик / зритель / <em>и ты!</em>
+          </p>
+
+          <p className="font-mono text-white leading-relaxed mb-6"
+            style={{ fontSize: "clamp(0.9rem, 2.5vw, 1.2rem)" }}
+          >
+            я жду твою <span className="border border-[#e8ff5a] px-1 text-[#e8ff5a]">заявку</span> и верю, что именно ты засияешь вместе со <em>студенческими отрядами Алтайского края!</em>
+          </p>
+
+          <div className="flex items-center gap-3 flex-wrap">
+            <button
+              onClick={() => setShowUpload(true)}
+              className="retro-btn-yellow px-5 py-2 text-sm font-mono uppercase tracking-widest"
+            >
+              [ поделиться фото ]
+            </button>
+            <div className="font-mono text-xs text-white/40">
+              {allPhotos.length} фото в ленте
+            </div>
+          </div>
         </div>
 
-        <h1
-          className="font-display leading-none mb-2 glitch"
-          data-text="ЛЕНТА МОМЕНТОВ"
-          style={{ fontSize: "clamp(3rem, 10vw, 7rem)", color: "hsl(0 0% 8%)" }}
-        >
-          ЛЕНТА <span className="grad-text">МОМЕНТОВ</span>
-        </h1>
-
-        <p className="font-mono text-sm sm:text-base text-muted-foreground cursor-blink">
-          Делись самыми яркими впечатлениями.
-        </p>
-
-        <div className="mt-6 sm:mt-8 border-t-2 border-foreground relative">
-          <span className="absolute -top-3 left-0 bg-background px-2 font-mono text-xs" style={{ color: "var(--electric)" }}>
-            [ {allPhotos.length} ФОТО ]
-          </span>
+        {/* Бегущая строка внизу блока */}
+        <div className="ticker-wrap border-t border-white/20 py-2 text-white/40 font-mono text-xs">
+          <div className="ticker">
+            {tickerText}{tickerText}
+          </div>
         </div>
       </section>
 
-      {/* CONTENT */}
-      <main className="max-w-5xl mx-auto px-4 pb-24 sm:pb-20">
+      {/* GRID ФОТО */}
+      <main className="max-w-5xl mx-auto px-4 py-8 pb-28">
         {loadingApi && apiPhotos.length === 0 && (
-          <div className="flex items-center gap-3 py-8 font-mono text-sm text-muted-foreground">
+          <div className="flex items-center gap-3 py-8 font-mono text-sm text-white/50">
             <Icon name="Loader2" size={16} className="animate-spin" />
             ЗАГРУЗКА ДАННЫХ...
           </div>
         )}
 
-        <div className="space-y-0 divide-y-2 divide-foreground/20">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
           {allPhotos.map((photo, i) => (
             <PhotoCard
               key={photo.id}
@@ -221,28 +283,18 @@ export default function Index() {
         </div>
 
         {allPhotos.length === 0 && !loadingApi && (
-          <div className="py-20 font-mono text-sm text-muted-foreground text-center">
+          <div className="py-20 font-mono text-sm text-white/40 text-center">
             <p>[ ДАННЫЕ ОТСУТСТВУЮТ ]</p>
           </div>
         )}
-
-        <div className="mt-12 sm:mt-16 border-2 border-dashed border-foreground/30 p-6 sm:p-8 text-center">
-          <p className="font-mono text-xs text-muted-foreground uppercase tracking-widest mb-3">// ЗАГРУЗИТЬ НОВОЕ ФОТО</p>
-          <button
-            onClick={() => setShowUpload(true)}
-            className="retro-btn-blue px-6 py-2.5 text-sm uppercase tracking-wider flex items-center gap-2 mx-auto"
-          >
-            <Icon name="ImagePlus" size={14} />
-            [ ПОДЕЛИТЬСЯ ФОТО ]
-          </button>
-        </div>
       </main>
 
       {/* FAB — всегда виден */}
       <div className="fixed bottom-5 right-5 z-30">
         <button
           onClick={() => setShowUpload(true)}
-          className="retro-btn-filled w-14 h-14 flex items-center justify-center text-2xl font-display border-2 border-foreground active:scale-90 transition-transform shadow-lg"
+          className="retro-btn-filled w-14 h-14 flex items-center justify-center text-2xl font-mono active:scale-90 transition-transform"
+          style={{ background: "#e8ff5a", color: "#1a00cc", border: "2px solid #1a00cc" }}
           title="Добавить фото"
         >
           +
