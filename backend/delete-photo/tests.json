@@ -7,10 +7,24 @@
       "expectedStatus": 200
     },
     {
-      "name": "Missing photo_id",
+      "name": "Missing password",
       "method": "DELETE",
       "path": "/",
-      "body": {},
+      "body": {"photo_id": 1},
+      "expectedStatus": 403
+    },
+    {
+      "name": "Wrong password",
+      "method": "DELETE",
+      "path": "/",
+      "body": {"photo_id": 1, "password": "wrong"},
+      "expectedStatus": 403
+    },
+    {
+      "name": "Missing photo_id with correct password",
+      "method": "DELETE",
+      "path": "/",
+      "body": {"password": "89132543946Mama"},
       "expectedStatus": 400
     }
   ]

@@ -61,11 +61,14 @@ export async function incrementView(photoId: number): Promise<void> {
   });
 }
 
-export async function deletePhoto(photoId: number): Promise<void> {
+export async function deletePhoto(photoId: number, password: string): Promise<void> {
   const res = await fetch(URLS.deletePhoto, {
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ photo_id: photoId }),
+    body: JSON.stringify({ photo_id: photoId, password }),
   });
-  if (!res.ok) throw new Error("Ошибка удаления");
+  if (!res.ok) {
+    const data = await parseBody(res).catch(() => ({}));
+    throw new Error(data.error || "Ошибка удаления");
+  }
 }

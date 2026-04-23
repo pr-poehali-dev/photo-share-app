@@ -10,9 +10,11 @@ interface PhotoModalProps {
   onNext: () => void;
   hasPrev: boolean;
   hasNext: boolean;
+  canDelete?: boolean;
+  onDelete?: () => void;
 }
 
-export default function PhotoModal({ photo, onClose, onLike, onPrev, onNext, hasPrev, hasNext }: PhotoModalProps) {
+export default function PhotoModal({ photo, onClose, onLike, onPrev, onNext, hasPrev, hasNext, canDelete, onDelete }: PhotoModalProps) {
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -112,6 +114,18 @@ export default function PhotoModal({ photo, onClose, onLike, onPrev, onNext, has
               <p className="font-mono text-xs text-white/50 mt-1">{photo.author}</p>
             </div>
 
+            {canDelete && onDelete && (
+              <div className="p-4 flex-shrink-0">
+                <button
+                  onClick={onDelete}
+                  className="w-full flex items-center justify-center gap-2 font-mono text-[11px] uppercase tracking-widest text-white py-2 transition-colors"
+                  style={{ background: "rgba(232,0,45,0.2)", border: "1px solid rgba(232,0,45,0.6)" }}
+                >
+                  <Icon name="Trash2" size={12} />
+                  Удалить
+                </button>
+              </div>
+            )}
 
           </div>
         </div>
