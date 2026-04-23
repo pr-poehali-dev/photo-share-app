@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Icon from "@/components/ui/icon";
 import { Photo } from "@/data/photos";
 
@@ -6,15 +6,13 @@ interface PhotoModalProps {
   photo: Photo | null;
   onClose: () => void;
   onLike: (id: number) => void;
-  onDelete?: (id: number) => void;
   onPrev: () => void;
   onNext: () => void;
   hasPrev: boolean;
   hasNext: boolean;
 }
 
-export default function PhotoModal({ photo, onClose, onLike, onDelete, onPrev, onNext, hasPrev, hasNext }: PhotoModalProps) {
-  const [confirmDelete, setConfirmDelete] = useState(false);
+export default function PhotoModal({ photo, onClose, onLike, onPrev, onNext, hasPrev, hasNext }: PhotoModalProps) {
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -30,8 +28,6 @@ export default function PhotoModal({ photo, onClose, onLike, onDelete, onPrev, o
     document.body.style.overflow = photo ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
   }, [photo]);
-
-  useEffect(() => { setConfirmDelete(false); }, [photo?.id]);
 
   if (!photo) return null;
 
@@ -116,36 +112,7 @@ export default function PhotoModal({ photo, onClose, onLike, onDelete, onPrev, o
               <p className="font-mono text-xs text-white/50 mt-1">{photo.author}</p>
             </div>
 
-            <div className="p-4 space-y-3 flex-1 overflow-y-auto">
-              {onDelete && (
-                confirmDelete ? (
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => { onDelete(photo.id); onClose(); }}
-                      className="flex-1 font-mono text-xs uppercase py-2 flex items-center justify-center gap-1.5 active:scale-[0.97]"
-                      style={{ border: "1px solid #ff4444", background: "rgba(255,0,0,0.15)", color: "#ff6666" }}
-                    >
-                      <Icon name="Trash2" size={11} /> УДАЛИТЬ
-                    </button>
-                    <button
-                      onClick={() => setConfirmDelete(false)}
-                      className="px-3 py-2 font-mono text-xs uppercase text-white/50 active:scale-[0.97]"
-                      style={{ border: "1px solid rgba(255,255,255,0.2)" }}
-                    >
-                      НЕТ
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => setConfirmDelete(true)}
-                    className="w-full p-2.5 flex items-center justify-center gap-2 font-mono text-xs uppercase text-white/30 active:scale-[0.97] tracking-wider"
-                    style={{ border: "1px solid rgba(255,255,255,0.1)" }}
-                  >
-                    <Icon name="Trash2" size={11} /> УДАЛИТЬ ФОТО
-                  </button>
-                )
-              )}
-            </div>
+
           </div>
         </div>
       </div>

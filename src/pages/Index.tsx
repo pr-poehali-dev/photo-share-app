@@ -277,7 +277,6 @@ export default function Index() {
         photo={selectedPhoto}
         onClose={() => setSelectedPhoto(null)}
         onLike={handleLike}
-        onDelete={selectedPhoto?._apiId ? handleDelete : undefined}
         onPrev={handlePrev}
         onNext={handleNext}
         hasPrev={currentIndex > 0}
