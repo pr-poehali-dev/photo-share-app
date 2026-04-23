@@ -116,11 +116,27 @@ export default function Index() {
   const loadPhotos = useCallback(async () => {
     try {
       const data = await fetchPhotos();
-      setApiPhotos(data.map(apiToPhoto));
+      const fresh = data.map(apiToPhoto);
+      setApiPhotos((prev) => {
+        const prevMap = new Map(prev.map((p) => [p.id, p]));
+        return fresh.map((f) => {
+          const old = prevMap.get(f.id);
+          return old ? { ...f, liked: old.liked, likes: Math.max(f.likes, old.likes), views: Math.max(f.views, old.views) } : f;
+        });
+      });
     } catch (_e) { /* fallback */ } finally { setLoadingApi(false); }
   }, []);
 
   useEffect(() => { loadPhotos(); }, [loadPhotos]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") loadPhotos();
+    }, 10000);
+    const onVisible = () => { if (document.visibilityState === "visible") loadPhotos(); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => { clearInterval(interval); document.removeEventListener("visibilitychange", onVisible); };
+  }, [loadPhotos]);
 
   const allPhotos: PhotoWithApi[] = useMemo(
     () => [...apiPhotos, ...STATIC_PHOTOS.map((p) => ({ ...p }))],
