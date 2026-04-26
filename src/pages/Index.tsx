@@ -118,11 +118,14 @@ export default function Index() {
       const data = await fetchPhotos();
       const fresh = data.map(apiToPhoto);
       setApiPhotos((prev) => {
-        const prevMap = new Map(prev.map((p) => [p.id, p]));
-        return fresh.map((f) => {
-          const old = prevMap.get(f.id);
-          return old ? { ...f, liked: old.liked, likes: Math.max(f.likes, old.likes), views: Math.max(f.views, old.views) } : f;
+        const freshMap = new Map(fresh.map((f) => [f.id, f]));
+        const merged = prev.map((old) => {
+          const f = freshMap.get(old.id);
+          return f ? { ...f, liked: old.liked, likes: Math.max(f.likes, old.likes), views: Math.max(f.views, old.views) } : old;
         });
+        const existingIds = new Set(prev.map((p) => p.id));
+        const newOnes = fresh.filter((f) => !existingIds.has(f.id));
+        return [...newOnes, ...merged];
       });
     } catch (_e) { /* fallback */ } finally { setLoadingApi(false); }
   }, []);
