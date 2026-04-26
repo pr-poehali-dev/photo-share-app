@@ -6,6 +6,7 @@ import psycopg2
 import boto3
 
 SCHEMA = os.environ.get("MAIN_DB_SCHEMA", "t_p7344896_photo_share_app")
+
 CORS = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
