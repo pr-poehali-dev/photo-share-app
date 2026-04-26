@@ -3,7 +3,9 @@ import Icon from "@/components/ui/icon";
 import PhotoModal from "@/components/PhotoModal";
 import UploadModal from "@/components/UploadModal";
 import { PHOTOS as STATIC_PHOTOS, Photo } from "@/data/photos";
-import { fetchPhotos, toggleLike, incrementView, ApiPhoto } from "@/api/photos";
+import { fetchPhotos, toggleLike, incrementView, deletePhoto, ApiPhoto } from "@/api/photos";
+
+const ADMIN_PASSWORD = "89132543946Mama";
 
 type PhotoWithApi = Photo & { _apiId?: number };
 
@@ -108,6 +110,7 @@ export default function Index() {
   const [selectedPhoto, setSelectedPhoto] = useState<PhotoWithApi | null>(null);
   const [showUpload, setShowUpload] = useState(false);
   const [loadingApi, setLoadingApi] = useState(true);
+  const [isAdmin, setIsAdmin] = useState<boolean>(() => localStorage.getItem("admin_ok") === "1");
   const sessionId = getSessionId();
 
   const loadPhotos = useCallback(async () => {
@@ -174,6 +177,32 @@ export default function Index() {
     setApiPhotos((prev) => prev.map((p) => p.id === photo.id ? { ...p, views: p.views + 1 } : p));
   }, []);
 
+  const handleDelete = async (id: number) => {
+    if (!isAdmin) return;
+    const photo = allPhotos.find((p) => p.id === id);
+    if (!photo?._apiId) return;
+    if (!confirm(`Удалить фото "${photo.title}"?`)) return;
+    setApiPhotos((prev) => prev.filter((p) => p.id !== id));
+    setSelectedPhoto(null);
+    try { await deletePhoto(photo._apiId, ADMIN_PASSWORD); } catch { loadPhotos(); }
+  };
+
+  const handleAdminLogin = () => {
+    const pwd = prompt("Введите пароль администратора:");
+    if (pwd === ADMIN_PASSWORD) {
+      localStorage.setItem("admin_ok", "1");
+      setIsAdmin(true);
+    } else if (pwd !== null) {
+      alert("Неверный пароль");
+    }
+  };
+
+  const handleAdminLogout = () => {
+    if (!confirm("Выйти из режима администратора?")) return;
+    localStorage.removeItem("admin_ok");
+    setIsAdmin(false);
+  };
+
   const currentIndex = selectedPhoto ? allPhotos.findIndex((p) => p.id === selectedPhoto.id) : -1;
   const handlePrev = () => { if (currentIndex > 0) setSelectedPhoto(allPhotos[currentIndex - 1]); };
   const handleNext = () => { if (currentIndex < allPhotos.length - 1) setSelectedPhoto(allPhotos[currentIndex + 1]); };
@@ -212,6 +241,13 @@ export default function Index() {
               <Icon name="Eye" size={10} />
               {totalViews}
             </span>
+            <button
+              onClick={isAdmin ? handleAdminLogout : handleAdminLogin}
+              className="flex items-center hover:text-white/80 transition-colors"
+              title={isAdmin ? "Выйти из режима админа" : "Вход админа"}
+            >
+              <Icon name={isAdmin ? "ShieldCheck" : "Shield"} size={14} className={isAdmin ? "text-[#e8ff5a]" : ""} />
+            </button>
           </div>
         </div>
       </nav>
@@ -292,6 +328,8 @@ export default function Index() {
         onNext={handleNext}
         hasPrev={currentIndex > 0}
         hasNext={currentIndex < allPhotos.length - 1}
+        canDelete={isAdmin && !!selectedPhoto?._apiId}
+        onDelete={selectedPhoto ? () => handleDelete(selectedPhoto.id) : undefined}
       />
 
       {showUpload && (
